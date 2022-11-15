@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; width: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>web-paint</title>
+</head>
+<body style="height: 100%; width: 100%;">
+    <style>
+        button.tool {
+            background-color: #4c5270;
+            border: none;
+            color: #ffffff;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        /* button.tool:hover {
+            background-color: #0e86d4;
+        } */
+
+        button.activated_tool {
+            background-color: #055c9d;
+            border: none;
+            color: #ffffff;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        /* button.activated_tool:hover {
+            background-color: #68bbe3;
+        } */
+
+        h1 {
+            font-size: 24px;
+        }
+
+        h2 {
+            font-size: 20px;
+        }
+    </style>
+
+    <div id="tool_bar"></div>
+
+    <div id="tools">
+        <div id="size" hidden>
+            <h1>
+                size
+            </h1>
+
+            <table>
+                <tr>
+                    <td>
+                        width:
+                    </td>
+                    <td>
+                        <input type="number" id="canvas_w_input" value="500">
+                    </td>
+                    <td>
+                        <button onclick="apply_canvas_w()">Apply</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        height:
+                    </td>
+                    <td>
+                        <input type="number" id="canvas_h_input" value="500">
+                    </td>
+                    <td>
+                        <button onclick="apply_canvas_h()">Apply</button>
+                    </td>
+                </tr>
+            </table>
+
+            <hr>
+        </div>
+
+        <div id="zoom" hidden>
+            <h1>
+                zoom
+            </h1>
+
+            <input type="number" value="1" id="canvas_zoom">
+            <button onclick="apply_canvas_zoom()">Apply</button>
+
+            <hr>
+        </div>
+
+        <div id="colour" hidden>
+            <h1>
+                colour
+            </h1>
+
+            <h2>
+                background colour
+            </h2>
+
+            <table>
+                <tr>
+                    <td>
+                        rgb
+                    </td>
+                    <td>
+                        hex
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="canvas_colour"></div>
+                    </td>
+                    <td>
+                        <div id="canvas_colour_hex"></div>
+                    </td>
+                </tr>
+            </table>
+
+            <div>
+                <button onclick="apply_canvas_colour()">Use from colour mixer</button>
+                <br>
+                transparent background (only noticable when image is exported):
+                <input type="checkbox">
+            </div>
+
+            <h2>
+                colour mixer
+            </h2>
+            
+            <table>
+                <tr>
+                    <td>
+                        red:
+                    </td>
+                    <td>
+                        <div id="colour_red"></div>
+                    </td>
+                    <td>
+                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_red" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                    </td>
+                    <td id="colour_preview"></td>
+                </tr>
+                <tr>
+                    <td>
+                        green:
+                    </td>
+                    <td>
+                        <div id="colour_green"></div>
+                    </td>
+                    <td>
+                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_green" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                    </td>
+                    <td id="rgb"></td>
+                </tr>
+                <tr>
+                    <td>
+                        blue:
+                    </td>
+                    <td>
+                        <div id="colour_blue"></div>
+                    </td>
+                    <td>
+                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_blue" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                    </td>
+                    <td id="hex"></td>
+                </tr>
+            </table>
+
+            <hr>
+        </div>
+
+        <div id="grid settings" hidden>
+            <h1>
+                grid settings
+            </h1>
+
+            show grid:
+            <input type="checkbox" id="show_grid" onclick="toggle_grid()" checked="true">
+            <br>
+            show outer grid:
+            <input type="checkbox" id="show_outer_grid" onclick="toggle_outer_grid()" checked="true">
+            <br>
+            show inner grid:
+            <input type="checkbox" id="show_inner_grid" onclick="toggle_inner_grid()" checked="true">
+            <br>
+            grid thickness (in pixels):
+            <input type="number" value="1" id="grid_thickness">
+            <button onclick="apply_grid_thickness()">Apply</button>
+            <br>
+            pixels seperated (width):
+            <input type="number" value="10" id="px_sep_w">
+            <button onclick="redo_pixels_seperated_w()">Apply</button>
+            <br>
+            pixels seperated (height):
+            <input type="number" value="10" id="px_sep_h">
+            <button onclick="redo_pixels_seperated_h()">Apply</button>
+
+            <hr>
+        </div>
+    </div>
+
+    <div id="canvas">
+        <div id="grid">
+            <div id="inner_grid">
+                <div id="horizontal_grid"></div>
+                <div id="vertical_grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="outer_grid"></div>
+
+    <script type="text/javascript">
+        /**
+        white
+        #ffffff
+
+        Tiffany Blue
+        #bcece0
+
+        Cyan
+        #36eee0
+
+        Hot Pink
+        #f652a0
+
+        Cornflower
+        #4c5270
+        */
+
+        // canvas
+        const CANVAS        = document.getElementById("canvas");
+        const CANVAS_COLOUR = document.getElementById("canvas_colour");
+        const CANVAS_HEX    = document.getElementById("canvas_colour_hex");
+        // tools
+        const TOOL_BAR  = document.getElementById("tool_bar");
+        const TOOLS     = ["size", "zoom", "colour", "grid settings"];
+        // colour
+        const COLOURS       = [
+                                document.getElementById("colour_red"),
+                                document.getElementById("colour_green"),
+                                document.getElementById("colour_blue")
+        ];
+        const RGB_INPUT     = [
+                                document.getElementById("input_red"),
+                                document.getElementById("input_green"),
+                                document.getElementById("input_blue")
+        ];
+        const RGB           = document.getElementById("rgb");
+        const HEX           = document.getElementById("hex");
+        const COLOUR_PRE    = document.getElementById("colour_preview");
+        // grid
+        const GRID              = document.getElementById("grid");
+        const OUTER_GRID        = document.getElementById("outer_grid");
+        const INNER_GRID        = document.getElementById("inner_grid");
+        const HORIZONTAL_GRID   = document.getElementById("horizontal_grid");
+        const VERTIKAL_GRID     = document.getElementById("vertical_grid");
+
+        // grid settings
+        const SHOW_GRID         = document.getElementById("show_grid");
+        const SHOW_INNER_GRID   = document.getElementById("show_inner_grid");
+        const SHOW_OUTER_GRID   = document.getElementById("show_outer_grid");
+        const GRID_THICKNESS    = document.getElementById("grid_thickness");
+        const PX_SEP_W          = document.getElementById("px_sep_w");
+        const PX_SEP_H          = document.getElementById("px_sep_h");
+
+        // canvas
+        let canvas_w    = 500;
+        let canvas_h    = 500;
+        let canvas_bg   = "black";
+        let canvas_zoom = 1;
+
+        // grid
+        let grid_thickness      = Number(GRID_THICKNESS.value);
+        let horizontal_lines    = [];
+        let vertical_lines      = [];
+        let pixels_seperated_w  = Number(PX_SEP_W.value);
+        let pixels_seperated_h  = Number(PX_SEP_H.value);
+
+        // canvas 
+        function apply_canvas_w() {
+            let x = document.getElementById("canvas_w_input").value;
+            canvas_w = Number(x);
+            apply_canvas_changes();
+        }
+
+        function apply_canvas_h() {
+            let x = document.getElementById("canvas_h_input").value;
+            canvas_h = Number(x);
+            apply_canvas_changes();
+        }
+
+        function apply_canvas_zoom() {
+            let x = document.getElementById("canvas_zoom").value;
+            canvas_zoom = Number(x);
+            apply_canvas_changes();
+        }
+
+        function apply_canvas_colour() {
+            let x = HEX.textContent;
+            canvas_bg = x;
+
+            CANVAS_COLOUR.textContent = RGB.textContent;
+            CANVAS_HEX.textContent = HEX.textContent;
+            apply_canvas_changes();
+        }
+
+        function apply_canvas_changes() {
+            CANVAS.style = "background-color: " + canvas_bg + "; height: " + canvas_h + "px; width: " + canvas_w + "px; transform: scale(" + canvas_zoom + "); transform-origin: 0% 0% 0px;";
+            redo_grid();
+        }
+
+        // tools
+        function change_tool_to(to) {
+            let e = document.getElementById(to);
+            e.hidden = !e.hidden;
+        }
+        
+        function componentToHex(c) {
+            // https://www.w3docs.com/snippets/javascript/how-to-convert-rgb-to-hex-and-vice-versa.html
+
+            let hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        }
+
+        function update_colour_mixer() {
+            let r = RGB_INPUT[0].value;
+            let g = RGB_INPUT[1].value;
+            let b = RGB_INPUT[2].value;
+
+            COLOURS[0].textContent = r;
+            COLOURS[1].textContent = g;
+            COLOURS[2].textContent = b;
+
+            RGB.textContent = "rgb(" + r + ", " + g + ", " + b + ")";
+            HEX.textContent = "#" + componentToHex(Number(r)) + componentToHex(Number(g)) + componentToHex(Number(b));
+            COLOUR_PRE.style = "background-color: " + HEX.textContent + ";";
+        }
+
+        // grid
+        function toggle_grid() {
+            GRID.hidden = !SHOW_GRID.checked;
+        }
+
+        function toggle_outer_grid() {
+            OUTER_GRID.hidden = !SHOW_OUTER_GRID.checked;
+        }
+
+        function toggle_inner_grid() {
+            INNER_GRID.hidden = !SHOW_INNER_GRID.checked;
+        }
+
+        function remove_horizontal_lines() {
+            for (let i = 0; i < horizontal_lines.length; i++) {
+                horizontal_lines[i].remove();
+            }
+            horizontal_lines = [];
+        }
+
+        function remove_vertical_lines() {
+            for (let i = 0; i < vertical_lines.length; i++) {
+                vertical_lines[i].remove();
+            }
+            vertical_lines = [];
+        }
+
+        function add_horizontal_lines() {
+            for (let i = pixels_seperated_h * canvas_zoom; i < (canvas_h * canvas_zoom); i = i + pixels_seperated_h * canvas_zoom) {
+                let x = document.createElement("div");
+                x.style = "background-color: #000000; width: " + canvas_w * canvas_zoom + "px; height: " + grid_thickness + "px; position: absolute; top: " + i + "px;";
+                HORIZONTAL_GRID.appendChild(x);
+                horizontal_lines.push(x);
+            }
+        }
+
+        function add_vertical_lines() {
+            for (let i = pixels_seperated_w * canvas_zoom; i < (canvas_w * canvas_zoom); i = i + pixels_seperated_w * canvas_zoom) {
+                let x = document.createElement("div");
+                x.style = "background-color: #000000; height: " + canvas_h * canvas_zoom + "px; width: " + grid_thickness + "px; position: absolute; left: " + i + "px;";
+                VERTIKAL_GRID.appendChild(x);
+                vertical_lines.push(x);
+            }
+        }
+
+        function apply_grid_thickness() {
+            grid_thickness = Number(GRID_THICKNESS.value);
+            redo_grid();
+        }
+
+        function redo_pixels_seperated_w() {
+            pixels_seperated_w = Number(PX_SEP_W.value);
+            redo_grid();
+        }
+
+        function redo_pixels_seperated_h() {
+            pixels_seperated_h = Number(PX_SEP_H.value);
+            redo_grid();
+        }
+
+        function redo_grid() {
+            remove_horizontal_lines();
+            remove_vertical_lines();
+            add_horizontal_lines();
+            add_vertical_lines();
+            GRID.style = "transform: scale(" + 1 / canvas_zoom + "); transform-origin: 0% 0% 0px;";
+        }
+
+
+        function setup() {
+            // colour mixer
+            update_colour_mixer()
+
+            // canvas
+            apply_canvas_w();
+            apply_canvas_h();
+            apply_canvas_zoom();
+            apply_canvas_colour();
+            apply_canvas_changes();
+
+            // add tool bar buttons
+            for (let i = 0; i < TOOLS.length; i++) {
+                let t = TOOLS[i];
+                let x = document.createElement("button");
+
+                let f1 = () => {
+                    console.log(t);
+                    change_tool_to(t);
+                    x.className = "activated_tool";
+                    x.onclick = f2;
+                }
+                let f2 = () => {
+                    console.log(t);
+                    change_tool_to(t);
+                    x.className = "tool";
+                    x.onclick = f1;
+                }
+                x.onclick = f1;
+                x.textContent = t;
+                x.className = "tool";
+
+                TOOL_BAR.appendChild(x);
+            }
+
+            // grid
+            toggle_grid();
+            toggle_inner_grid();
+            toggle_outer_grid();
+            redo_grid()
+        }
+        
+        setup();
+
+    </script>
+</body>
+</html>
