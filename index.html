@@ -203,6 +203,10 @@
 
             <hr>
         </div>
+
+        <div id="layers" hidden>
+            <table id="layers_table"></table>
+        </div>
     </div>
 
     <div id="canvas">
@@ -212,9 +216,12 @@
                 <div id="vertical_grid"></div>
             </div>
         </div>
+
+        <div id="layer_imgs"></div>
     </div>
 
     <div id="outer_grid"></div>
+    <canvas id="my_canvas"></canvas>
 
     <script type="text/javascript">
         /**
@@ -234,13 +241,19 @@
         #4c5270
         */
 
+    //
+    // - constants
+    //
+
         // canvas
         const CANVAS        = document.getElementById("canvas");
         const CANVAS_COLOUR = document.getElementById("canvas_colour");
         const CANVAS_HEX    = document.getElementById("canvas_colour_hex");
+
         // tools
         const TOOL_BAR  = document.getElementById("tool_bar");
-        const TOOLS     = ["size", "zoom", "colour", "grid settings"];
+        const TOOLS     = ["size", "zoom", "colour", "grid settings", "layers"];
+
         // colour
         const COLOURS       = [
                                 document.getElementById("colour_red"),
@@ -255,6 +268,7 @@
         const RGB           = document.getElementById("rgb");
         const HEX           = document.getElementById("hex");
         const COLOUR_PRE    = document.getElementById("colour_preview");
+
         // grid
         const GRID              = document.getElementById("grid");
         const OUTER_GRID        = document.getElementById("outer_grid");
@@ -270,6 +284,14 @@
         const PX_SEP_W          = document.getElementById("px_sep_w");
         const PX_SEP_H          = document.getElementById("px_sep_h");
 
+        // layers
+        const LAYER_IMGS    = document.getElementById("layer_imgs");
+        const LAYERS_TABLE  = document.getElementById("layers_table");
+
+    //
+    // - variables
+    //
+
         // canvas
         let canvas_w    = 500;
         let canvas_h    = 500;
@@ -282,6 +304,15 @@
         let vertical_lines      = [];
         let pixels_seperated_w  = Number(PX_SEP_W.value);
         let pixels_seperated_h  = Number(PX_SEP_H.value);
+
+        // layers
+        let layer_count = 0;
+        let layer_imgs  = [];
+        let layer_table = [];
+
+    //
+    // - functions
+    //
 
         // canvas 
         function apply_canvas_w() {
@@ -411,10 +442,47 @@
             GRID.style = "transform: scale(" + 1 / canvas_zoom + "); transform-origin: 0% 0% 0px;";
         }
 
+        // layers
+
+        function add_layer() {
+            let layer_name_imgs     = "layer_imgs_" + layer_count;
+            let layer_name_table    = "layer_table_" + layer_count;
+            
+            // creating canvas to draw on
+            let new_layer = document.createElement("canvas");   // create a new canvas
+            new_layer.width = canvas_w;                         // set its width
+            new_layer.height = canvas_h;                        // set its height
+            new_layer.id = layer_imgs;                          // add an id
+            LAYER_IMGS.appendChild(new_layer);                  // add it to the others
+
+            // coloum fot the table
+            new_layer = document.createElement("tr");   	    // create a new coloum seperator
+            new_layer.id = layer_name_table;                    // give it an id
+            LAYERS_TABLE.appendChild(new_layer);                // add the coloum to the table
+
+            // row for the name
+            let name = document.createElement("td");            // create new row seperator for the layer name
+            name.textContent = "layer " + layer_count;          // give it content
+            new_layer.appendChild(name);                        // add the row to the coloumn
+            
+            // row for toggeling visability 
+            name = document.createElement("td");                // create new row seperator for hiding the layer
+            name.textContent = "visible";                       // add description 
+            let btn = document.createElement("input");          // input for checkbox
+            btn.type = "checkbox";                              // make it to a checkbox
+            name.appendChild(btn);                              // add the button to the row
+            new_layer.appendChild(name);                        // add the row to the coloumn
+
+            layer_count++;
+        }
+
+    //
+    // - setup
+    //
 
         function setup() {
             // colour mixer
-            update_colour_mixer()
+            update_colour_mixer();
 
             // canvas
             apply_canvas_w();
@@ -451,11 +519,56 @@
             toggle_grid();
             toggle_inner_grid();
             toggle_outer_grid();
-            redo_grid()
+            redo_grid();
+
+            // layers
+            add_layer();
         }
         
         setup();
 
+        let canvas = document.getElementById("my_canvas");
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(0, 0, 150, 75);
+/*
+        console.log(btoa("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="));
+        console.log(atob("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="));
+        // console.log(hex("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="))
+
+        let x= atob("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
+        for (let i = 0; i < x.length; i++) {
+            console.log(x.charAt(i));
+            console.log(x.charAt(i).charCodeAt(0).toString(16));
+            console.log(x.charAt(i).charCodeAt(0));
+
+        }
+        var canvas = document.createElement("canvas");
+
+
+canvas.width = 200;
+canvas.height = 200;
+/*
+canvas
+
+var url = canvas.toDataURL();
+
+var a = document.createElement('a');
+a.download = 'my.png';
+a.href = url;
+a.textContent = 'Download PNG';
+
+let ctx = canvas.getContext('2d');
+
+ctx.fillStyle = '#F0DB4F';
+    ctx.strokeStyle = 'red';
+
+    // draw a rectangle with fill and stroke
+    ctx.fillRect(50, 50, 150, 100);
+    ctx.strokeRect(50, 50, 150, 100);
+
+document.body.appendChild(a);
+*/
     </script>
 </body>
 </html>
