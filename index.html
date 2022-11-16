@@ -50,6 +50,53 @@
     <div id="tool_bar"></div>
 
     <div id="tools">
+        <div id="colour mixer" hidden>
+            <h1>
+                colour mixer
+            </h1>
+            
+            <table>
+                <tr>
+                    <td>
+                        red:
+                    </td>
+                    <td>
+                        <div id="colour_red"></div>
+                    </td>
+                    <td>
+                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_red" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                    </td>
+                    <td id="colour_preview"></td>
+                </tr>
+                <tr>
+                    <td>
+                        green:
+                    </td>
+                    <td>
+                        <div id="colour_green"></div>
+                    </td>
+                    <td>
+                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_green" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                    </td>
+                    <td id="rgb"></td>
+                </tr>
+                <tr>
+                    <td>
+                        blue:
+                    </td>
+                    <td>
+                        <div id="colour_blue"></div>
+                    </td>
+                    <td>
+                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_blue" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                    </td>
+                    <td id="hex"></td>
+                </tr>
+            </table>
+
+            <hr>
+        </div>
+
         <div id="size" hidden>
             <h1>
                 size
@@ -94,14 +141,10 @@
             <hr>
         </div>
 
-        <div id="colour" hidden>
+        <div id="background colour" hidden>
             <h1>
-                colour
-            </h1>
-
-            <h2>
                 background colour
-            </h2>
+            </h1>
 
             <table>
                 <tr>
@@ -128,49 +171,6 @@
                 transparent background (only noticable when image is exported):
                 <input type="checkbox">
             </div>
-
-            <h2>
-                colour mixer
-            </h2>
-            
-            <table>
-                <tr>
-                    <td>
-                        red:
-                    </td>
-                    <td>
-                        <div id="colour_red"></div>
-                    </td>
-                    <td>
-                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_red" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
-                    </td>
-                    <td id="colour_preview"></td>
-                </tr>
-                <tr>
-                    <td>
-                        green:
-                    </td>
-                    <td>
-                        <div id="colour_green"></div>
-                    </td>
-                    <td>
-                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_green" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
-                    </td>
-                    <td id="rgb"></td>
-                </tr>
-                <tr>
-                    <td>
-                        blue:
-                    </td>
-                    <td>
-                        <div id="colour_blue"></div>
-                    </td>
-                    <td>
-                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_blue" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
-                    </td>
-                    <td id="hex"></td>
-                </tr>
-            </table>
 
             <hr>
         </div>
@@ -221,7 +221,6 @@
     </div>
 
     <div id="outer_grid"></div>
-    <canvas id="my_canvas"></canvas>
 
     <script type="text/javascript">
         /**
@@ -252,7 +251,7 @@
 
         // tools
         const TOOL_BAR  = document.getElementById("tool_bar");
-        const TOOLS     = ["size", "zoom", "colour", "grid settings", "layers"];
+        const TOOLS     = ["colour mixer", "size", "zoom", "background colour", "grid settings", "layers"];
 
         // colour
         const COLOURS       = [
@@ -309,6 +308,7 @@
         let layer_count = 0;
         let layer_imgs  = [];
         let layer_table = [];
+        let active_ctx  = null; // is overwritten with a canvas element
 
     //
     // - functions
@@ -345,6 +345,7 @@
         function apply_canvas_changes() {
             CANVAS.style = "background-color: " + canvas_bg + "; height: " + canvas_h + "px; width: " + canvas_w + "px; transform: scale(" + canvas_zoom + "); transform-origin: 0% 0% 0px;";
             redo_grid();
+            adapt_layer_sizes();
         }
 
         // tools
@@ -449,31 +450,66 @@
             let layer_name_table    = "layer_table_" + layer_count;
             
             // creating canvas to draw on
-            let new_layer = document.createElement("canvas");   // create a new canvas
-            new_layer.width = canvas_w;                         // set its width
-            new_layer.height = canvas_h;                        // set its height
-            new_layer.id = layer_imgs;                          // add an id
-            LAYER_IMGS.appendChild(new_layer);                  // add it to the others
+            let x = document.createElement("canvas");   // create a new canvas
+            x.width = canvas_w;                         // set its width
+            x.height = canvas_h;                        // set its height
+            x.id = layer_imgs;                          // add an id
+            LAYER_IMGS.appendChild(x);                  // add it to the others
+            active_ctx = x.getContext("2d");
+            layer_imgs.push(x);
+            // x.style = "-webkit-font-smoothing: antialiased;";
+
+            var size = 200;
+            x.style.width = canvas_w + "px";
+            x.style.height = canvas_h + "px";
 
             // coloum fot the table
-            new_layer = document.createElement("tr");   	    // create a new coloum seperator
-            new_layer.id = layer_name_table;                    // give it an id
-            LAYERS_TABLE.appendChild(new_layer);                // add the coloum to the table
+            x = document.createElement("tr");           // create a new coloum seperator
+            x.id = layer_name_table;                    // give it an id
+            LAYERS_TABLE.appendChild(x);                // add the coloum to the table
+            layer_table.push(x);
 
             // row for the name
-            let name = document.createElement("td");            // create new row seperator for the layer name
-            name.textContent = "layer " + layer_count;          // give it content
-            new_layer.appendChild(name);                        // add the row to the coloumn
+            let y = document.createElement("td");       // create new row seperator for the layer name
+            y.textContent = "layer " + layer_count;     // give it content
+            x.appendChild(y);                           // add the row to the coloumn
             
             // row for toggeling visability 
-            name = document.createElement("td");                // create new row seperator for hiding the layer
-            name.textContent = "visible";                       // add description 
-            let btn = document.createElement("input");          // input for checkbox
-            btn.type = "checkbox";                              // make it to a checkbox
-            name.appendChild(btn);                              // add the button to the row
-            new_layer.appendChild(name);                        // add the row to the coloumn
+            y = document.createElement("td");           // create new row seperator for hiding the layer
+            y.textContent = "visible";                  // add description 
+            let btn = document.createElement("input");  // input for checkbox
+            btn.type = "checkbox";                      // make it to a checkbox
+            y.appendChild(btn);                         // add the button to the row
+            x.appendChild(y);                           // add the row to the coloumn
 
             layer_count++;
+        }
+
+        function adapt_layer_sizes() {
+            for (let i = 0; i < layer_imgs.length; i++) {
+                console.log("foo " + i);
+                let x = layer_imgs[i];
+                x.style = "transform: scale(" + 1 / canvas_zoom + "); transform-origin: 0% 0% 0px;";
+
+                active_ctx.scale(canvas_w * canvas_zoom, canvas_h * canvas_zoom);
+                //x.width = canvas_w;
+                //x.height = canvas_h;
+                //x.style.width = canvas_w + "px";
+                //x.style.height = canvas_h + "px";
+            }
+        }
+
+        // drawing
+
+        function getCursorPosition(canvas, event) {
+            const rect = canvas.getBoundingClientRect();
+            let x = (event.clientX - rect.left) / canvas_zoom;
+            x = Math.floor(x);
+            let y = (event.clientY - rect.top) / canvas_zoom;
+            y = Math.floor(y);
+            console.log("x: " + x + " y: " + y);
+            active_ctx.fillStyle = HEX.textContent;
+            active_ctx.fillRect(x, y, 1, 1);
         }
 
     //
@@ -490,6 +526,9 @@
             apply_canvas_zoom();
             apply_canvas_colour();
             apply_canvas_changes();
+            CANVAS.addEventListener('mousedown', function(e) {
+                getCursorPosition(canvas, e)
+            });
 
             // add tool bar buttons
             for (let i = 0; i < TOOLS.length; i++) {
@@ -526,7 +565,8 @@
         }
         
         setup();
-
+        
+        /*
         let canvas = document.getElementById("my_canvas");
         var ctx = canvas.getContext("2d");
         ctx.fillStyle = "#FF0000";
