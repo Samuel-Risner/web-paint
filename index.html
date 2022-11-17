@@ -64,7 +64,7 @@
                         <div id="colour_red"></div>
                     </td>
                     <td>
-                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_red" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_red" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
                     </td>
                     <td id="colour_preview"></td>
                 </tr>
@@ -76,7 +76,7 @@
                         <div id="colour_green"></div>
                     </td>
                     <td>
-                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_green" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_green" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
                     </td>
                     <td id="rgb"></td>
                 </tr>
@@ -88,7 +88,7 @@
                         <div id="colour_blue"></div>
                     </td>
                     <td>
-                        <input type="range" min="0" max="255" value="0" onchange="update_colour_mixer()" id="input_blue" oninput="update_colour_mixer()" onkeypress="update_colour_mixer()">
+                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_blue" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
                     </td>
                     <td id="hex"></td>
                 </tr>
@@ -108,10 +108,10 @@
                         width:
                     </td>
                     <td>
-                        <input type="number" id="canvas_w_input" value="500">
+                        <input type="number" id="canvas_w_input" value="50">
                     </td>
                     <td>
-                        <button onclick="apply_canvas_w()">Apply</button>
+                        <button onclick="canvas.change_width()">Apply</button>
                     </td>
                 </tr>
                 <tr>
@@ -119,10 +119,10 @@
                         height:
                     </td>
                     <td>
-                        <input type="number" id="canvas_h_input" value="500">
+                        <input type="number" id="canvas_h_input" value="50">
                     </td>
                     <td>
-                        <button onclick="apply_canvas_h()">Apply</button>
+                        <button onclick="canvas.change_height()">Apply</button>
                     </td>
                 </tr>
             </table>
@@ -135,8 +135,8 @@
                 zoom
             </h1>
 
-            <input type="number" value="1" id="canvas_zoom">
-            <button onclick="apply_canvas_zoom()">Apply</button>
+            <input type="number" value="10" id="canvas_zoom">
+            <button onclick="canvas.change_zoom()">Apply</button>
 
             <hr>
         </div>
@@ -157,16 +157,16 @@
                 </tr>
                 <tr>
                     <td>
-                        <div id="canvas_colour"></div>
+                        <div id="background_rgb_display"></div>
                     </td>
                     <td>
-                        <div id="canvas_colour_hex"></div>
+                        <div id="background_hex_display"></div>
                     </td>
                 </tr>
             </table>
 
             <div>
-                <button onclick="apply_canvas_colour()">Use from colour mixer</button>
+                <button onclick="canvas.change_colour()">Use from colour mixer</button>
                 <br>
                 transparent background (only noticable when image is exported):
                 <input type="checkbox">
@@ -181,13 +181,13 @@
             </h1>
 
             show grid:
-            <input type="checkbox" id="show_grid" onclick="toggle_grid()" checked="true">
+            <input type="checkbox" id="show_grid" onclick="grid.toggle_grid()" checked="true">
             <br>
             show outer grid:
-            <input type="checkbox" id="show_outer_grid" onclick="toggle_outer_grid()" checked="true">
+            <input type="checkbox" id="show_outer_grid" onclick="grid.toggle_outer_grid()" checked="true">
             <br>
             show inner grid:
-            <input type="checkbox" id="show_inner_grid" onclick="toggle_inner_grid()" checked="true">
+            <input type="checkbox" id="show_inner_grid" onclick="grid.toggle_inner_grid()" checked="true">
             <br>
             grid thickness (in pixels):
             <input type="number" value="1" id="grid_thickness">
@@ -239,332 +239,376 @@
         Cornflower
         #4c5270
         */
+        
+        class Canvas {
+            constructor() {
+                this.canvas                 = document.getElementById("canvas");
+                this.background_rgb_display = document.getElementById("background_rgb_display");
+                this.background_hex_display = document.getElementById("background_hex_display");
+        
+                this.width_input     = document.getElementById("canvas_w_input");
+                this.height_input    = document.getElementById("canvas_h_input");
+                this.zoom_input      = document.getElementById("canvas_zoom");
+        
+                this.width      = 50;
+                this.height     = 50;
+                this.bg_colour  = "#000000";
+                this.zoom       = 10;
+            }
 
-    //
-    // - constants
-    //
+            change_width() {
+                this.width = Number(this.width_input.value);
+                change_size();
+                this.apply_changes();
+                grid.redo_grid();
+            }
 
-        // canvas
-        const CANVAS        = document.getElementById("canvas");
-        const CANVAS_COLOUR = document.getElementById("canvas_colour");
-        const CANVAS_HEX    = document.getElementById("canvas_colour_hex");
+            change_height() {
+                this.height = Number(this.width_input.value);
+                change_size();
+                this.apply_changes();
+                grid.redo_grid();
+            }
 
-        // tools
-        const TOOL_BAR  = document.getElementById("tool_bar");
-        const TOOLS     = ["colour mixer", "size", "zoom", "background colour", "grid settings", "layers"];
+            change_zoom() {
+                this.zoom = Number(this.zoom_input.value);
+                this.apply_changes();
+                grid.redo_grid();
+            }
 
-        // colour
-        const COLOURS       = [
-                                document.getElementById("colour_red"),
-                                document.getElementById("colour_green"),
-                                document.getElementById("colour_blue")
-        ];
-        const RGB_INPUT     = [
-                                document.getElementById("input_red"),
-                                document.getElementById("input_green"),
-                                document.getElementById("input_blue")
-        ];
-        const RGB           = document.getElementById("rgb");
-        const HEX           = document.getElementById("hex");
-        const COLOUR_PRE    = document.getElementById("colour_preview");
-
-        // grid
-        const GRID              = document.getElementById("grid");
-        const OUTER_GRID        = document.getElementById("outer_grid");
-        const INNER_GRID        = document.getElementById("inner_grid");
-        const HORIZONTAL_GRID   = document.getElementById("horizontal_grid");
-        const VERTIKAL_GRID     = document.getElementById("vertical_grid");
-
-        // grid settings
-        const SHOW_GRID         = document.getElementById("show_grid");
-        const SHOW_INNER_GRID   = document.getElementById("show_inner_grid");
-        const SHOW_OUTER_GRID   = document.getElementById("show_outer_grid");
-        const GRID_THICKNESS    = document.getElementById("grid_thickness");
-        const PX_SEP_W          = document.getElementById("px_sep_w");
-        const PX_SEP_H          = document.getElementById("px_sep_h");
-
-        // layers
-        const LAYER_IMGS    = document.getElementById("layer_imgs");
-        const LAYERS_TABLE  = document.getElementById("layers_table");
-
-    //
-    // - variables
-    //
-
-        // canvas
-        let canvas_w    = 500;
-        let canvas_h    = 500;
-        let canvas_bg   = "black";
-        let canvas_zoom = 1;
-
-        // grid
-        let grid_thickness      = Number(GRID_THICKNESS.value);
-        let horizontal_lines    = [];
-        let vertical_lines      = [];
-        let pixels_seperated_w  = Number(PX_SEP_W.value);
-        let pixels_seperated_h  = Number(PX_SEP_H.value);
-
-        // layers
-        let layer_count = 0;
-        let layer_imgs  = [];
-        let layer_table = [];
-        let active_ctx  = null; // is overwritten with a canvas element
-
-    //
-    // - functions
-    //
-
-        // canvas 
-        function apply_canvas_w() {
-            let x = document.getElementById("canvas_w_input").value;
-            canvas_w = Number(x);
-            apply_canvas_changes();
-        }
-
-        function apply_canvas_h() {
-            let x = document.getElementById("canvas_h_input").value;
-            canvas_h = Number(x);
-            apply_canvas_changes();
-        }
-
-        function apply_canvas_zoom() {
-            let x = document.getElementById("canvas_zoom").value;
-            canvas_zoom = Number(x);
-            apply_canvas_changes();
-        }
-
-        function apply_canvas_colour() {
-            let x = HEX.textContent;
-            canvas_bg = x;
-
-            CANVAS_COLOUR.textContent = RGB.textContent;
-            CANVAS_HEX.textContent = HEX.textContent;
-            apply_canvas_changes();
-        }
-
-        function apply_canvas_changes() {
-            CANVAS.style = "background-color: " + canvas_bg + "; height: " + canvas_h + "px; width: " + canvas_w + "px; transform: scale(" + canvas_zoom + "); transform-origin: 0% 0% 0px;";
-            redo_grid();
-            adapt_layer_sizes();
-        }
-
-        // tools
-        function change_tool_to(to) {
-            let e = document.getElementById(to);
-            e.hidden = !e.hidden;
+            change_colour() {
+                let r = colour_mixer.rgb_value.textContent;
+                let h = colour_mixer.hex_value.textContent;
+            
+                this.bg_colour = h;
+            
+                this.background_rgb_display.textContent = r;
+                this.background_hex_display.textContent = h;
+            
+                this.apply_changes();
+            }
+        
+            apply_changes() {
+                this.canvas.style = "background-color: " + this.bg_colour + "; height: " + this.height + "px; width: " + this.width + "px; transform: scale(" + this.zoom + "); transform-origin: 0% 0% 0px;";
+            }
         }
         
-        function componentToHex(c) {
-            // https://www.w3docs.com/snippets/javascript/how-to-convert-rgb-to-hex-and-vice-versa.html
-
-            let hex = c.toString(16);
-            return hex.length == 1 ? "0" + hex : hex;
-        }
-
-        function update_colour_mixer() {
-            let r = RGB_INPUT[0].value;
-            let g = RGB_INPUT[1].value;
-            let b = RGB_INPUT[2].value;
-
-            COLOURS[0].textContent = r;
-            COLOURS[1].textContent = g;
-            COLOURS[2].textContent = b;
-
-            RGB.textContent = "rgb(" + r + ", " + g + ", " + b + ")";
-            HEX.textContent = "#" + componentToHex(Number(r)) + componentToHex(Number(g)) + componentToHex(Number(b));
-            COLOUR_PRE.style = "background-color: " + HEX.textContent + ";";
-        }
-
-        // grid
-        function toggle_grid() {
-            GRID.hidden = !SHOW_GRID.checked;
-        }
-
-        function toggle_outer_grid() {
-            OUTER_GRID.hidden = !SHOW_OUTER_GRID.checked;
-        }
-
-        function toggle_inner_grid() {
-            INNER_GRID.hidden = !SHOW_INNER_GRID.checked;
-        }
-
-        function remove_horizontal_lines() {
-            for (let i = 0; i < horizontal_lines.length; i++) {
-                horizontal_lines[i].remove();
+        class Tool {
+            constructor() {
+                this.tool_bar = document.getElementById("tool_bar");
+                this.tools = ["colour mixer", "size", "zoom", "background colour", "grid settings", "layers"];
             }
-            horizontal_lines = [];
-        }
-
-        function remove_vertical_lines() {
-            for (let i = 0; i < vertical_lines.length; i++) {
-                vertical_lines[i].remove();
-            }
-            vertical_lines = [];
-        }
-
-        function add_horizontal_lines() {
-            for (let i = pixels_seperated_h * canvas_zoom; i < (canvas_h * canvas_zoom); i = i + pixels_seperated_h * canvas_zoom) {
-                let x = document.createElement("div");
-                x.style = "background-color: #000000; width: " + canvas_w * canvas_zoom + "px; height: " + grid_thickness + "px; position: absolute; top: " + i + "px;";
-                HORIZONTAL_GRID.appendChild(x);
-                horizontal_lines.push(x);
-            }
-        }
-
-        function add_vertical_lines() {
-            for (let i = pixels_seperated_w * canvas_zoom; i < (canvas_w * canvas_zoom); i = i + pixels_seperated_w * canvas_zoom) {
-                let x = document.createElement("div");
-                x.style = "background-color: #000000; height: " + canvas_h * canvas_zoom + "px; width: " + grid_thickness + "px; position: absolute; left: " + i + "px;";
-                VERTIKAL_GRID.appendChild(x);
-                vertical_lines.push(x);
-            }
-        }
-
-        function apply_grid_thickness() {
-            grid_thickness = Number(GRID_THICKNESS.value);
-            redo_grid();
-        }
-
-        function redo_pixels_seperated_w() {
-            pixels_seperated_w = Number(PX_SEP_W.value);
-            redo_grid();
-        }
-
-        function redo_pixels_seperated_h() {
-            pixels_seperated_h = Number(PX_SEP_H.value);
-            redo_grid();
-        }
-
-        function redo_grid() {
-            remove_horizontal_lines();
-            remove_vertical_lines();
-            add_horizontal_lines();
-            add_vertical_lines();
-            GRID.style = "transform: scale(" + 1 / canvas_zoom + "); transform-origin: 0% 0% 0px;";
-        }
-
-        // layers
-
-        function add_layer() {
-            let layer_name_imgs     = "layer_imgs_" + layer_count;
-            let layer_name_table    = "layer_table_" + layer_count;
             
-            // creating canvas to draw on
-            let x = document.createElement("canvas");   // create a new canvas
-            x.width = canvas_w;                         // set its width
-            x.height = canvas_h;                        // set its height
-            x.id = layer_imgs;                          // add an id
-            LAYER_IMGS.appendChild(x);                  // add it to the others
-            active_ctx = x.getContext("2d");
-            layer_imgs.push(x);
-            // x.style = "-webkit-font-smoothing: antialiased;";
-
-            var size = 200;
-            x.style.width = canvas_w + "px";
-            x.style.height = canvas_h + "px";
-
-            // coloum fot the table
-            x = document.createElement("tr");           // create a new coloum seperator
-            x.id = layer_name_table;                    // give it an id
-            LAYERS_TABLE.appendChild(x);                // add the coloum to the table
-            layer_table.push(x);
-
-            // row for the name
-            let y = document.createElement("td");       // create new row seperator for the layer name
-            y.textContent = "layer " + layer_count;     // give it content
-            x.appendChild(y);                           // add the row to the coloumn
-            
-            // row for toggeling visability 
-            y = document.createElement("td");           // create new row seperator for hiding the layer
-            y.textContent = "visible";                  // add description 
-            let btn = document.createElement("input");  // input for checkbox
-            btn.type = "checkbox";                      // make it to a checkbox
-            y.appendChild(btn);                         // add the button to the row
-            x.appendChild(y);                           // add the row to the coloumn
-
-            layer_count++;
-        }
-
-        function adapt_layer_sizes() {
-            for (let i = 0; i < layer_imgs.length; i++) {
-                console.log("foo " + i);
-                let x = layer_imgs[i];
-                x.style = "transform: scale(" + 1 / canvas_zoom + "); transform-origin: 0% 0% 0px;";
-
-                active_ctx.scale(canvas_w * canvas_zoom, canvas_h * canvas_zoom);
-                //x.width = canvas_w;
-                //x.height = canvas_h;
-                //x.style.width = canvas_w + "px";
-                //x.style.height = canvas_h + "px";
+            toggle_tool(to) {
+                let e = document.getElementById(to);
+                e.hidden = !e.hidden;
             }
-        }
-
-        // drawing
-
-        function getCursorPosition(canvas, event) {
-            const rect = canvas.getBoundingClientRect();
-            let x = (event.clientX - rect.left) / canvas_zoom;
-            x = Math.floor(x);
-            let y = (event.clientY - rect.top) / canvas_zoom;
-            y = Math.floor(y);
-            console.log("x: " + x + " y: " + y);
-            active_ctx.fillStyle = HEX.textContent;
-            active_ctx.fillRect(x, y, 1, 1);
-        }
-
-    //
-    // - setup
-    //
-
-        function setup() {
-            // colour mixer
-            update_colour_mixer();
-
-            // canvas
-            apply_canvas_w();
-            apply_canvas_h();
-            apply_canvas_zoom();
-            apply_canvas_colour();
-            apply_canvas_changes();
-            CANVAS.addEventListener('mousedown', function(e) {
-                getCursorPosition(canvas, e)
-            });
-
-            // add tool bar buttons
-            for (let i = 0; i < TOOLS.length; i++) {
-                let t = TOOLS[i];
-                let x = document.createElement("button");
-
-                let f1 = () => {
-                    console.log(t);
-                    change_tool_to(t);
-                    x.className = "activated_tool";
-                    x.onclick = f2;
-                }
-                let f2 = () => {
-                    console.log(t);
-                    change_tool_to(t);
-                    x.className = "tool";
-                    x.onclick = f1;
-                }
-                x.onclick = f1;
-                x.textContent = t;
-                x.className = "tool";
-
-                TOOL_BAR.appendChild(x);
-            }
-
-            // grid
-            toggle_grid();
-            toggle_inner_grid();
-            toggle_outer_grid();
-            redo_grid();
-
-            // layers
-            add_layer();
         }
         
-        setup();
+        class ColourMixer{
+            constructor() {
+                this.rgb_display = [
+                    document.getElementById("colour_red"),
+                    document.getElementById("colour_green"),
+                    document.getElementById("colour_blue")
+                ];
+                this.rgb_input = [
+                    document.getElementById("input_red"),
+                    document.getElementById("input_green"),
+                    document.getElementById("input_blue")
+                ];
+                this.rgb_value      = document.getElementById("rgb");
+                this.hex_value      = document.getElementById("hex");
+                this.colour_preview = document.getElementById("colour_preview");
+            }
+        
+            component_to_hex(c) {
+                // https://www.w3docs.com/snippets/javascript/how-to-convert-rgb-to-hex-and-vice-versa.html
+        
+                let hex = c.toString(16);
+                return hex.length == 1 ? "0" + hex : hex;
+            }
+        
+            update() {
+                let r = this.rgb_input[0].value;
+                let g = this.rgb_input[1].value;
+                let b = this.rgb_input[2].value;
+        
+                this.rgb_display[0].textContent = r;
+                this.rgb_display[1].textContent = g;
+                this.rgb_display[2].textContent = b;
+        
+                this.rgb_value.textContent = "rgb(" + r + ", " + g + ", " + b + ")";
+                this.hex_value.textContent = "#" + this.component_to_hex(Number(r)) + this.component_to_hex(Number(g)) + this.component_to_hex(Number(b));
+                this.colour_preview.style = "background-color: " + this.hex_value.textContent + ";";
+            }
+        }
+        
+        class Grid {
+            constructor() {
+                this.grid               = document.getElementById("grid");
+                this.outer_grid         = document.getElementById("outer_grid");
+                this.inner_grid         = document.getElementById("inner_grid");
+                this.horizontal_grid    = document.getElementById("horizontal_grid");
+                this.vertical_grid      = document.getElementById("vertical_grid");
+        
+                this.show_grid              = document.getElementById("show_grid");
+                this.show_inner_grid        = document.getElementById("show_inner_grid");
+                this.show_outer_grid        = document.getElementById("show_outer_grid");
+                this.grid_thickness_input   = document.getElementById("grid_thickness");
+                this.px_sep_w               = document.getElementById("px_sep_w");
+                this.px_sep_h               = document.getElementById("px_sep_h");
+        
+                this.grid_thickness      = Number(this.grid_thickness_input.value);
+                this.horizontal_lines    = [];
+                this.vertical_lines      = [];
+                this.pixels_seperated_w  = Number(this.px_sep_w.value);
+                this.pixels_seperated_h  = Number(this.px_sep_w.value);
+            }
+        
+            toggle_grid() {
+                this.grid.hidden = !this.show_grid.checked;
+            }
+        
+            toggle_outer_grid() {
+                this.outer_grid.hidden = !this.show_outer_grid.checked;
+            }
+            
+            toggle_inner_grid() {
+                this.inner_grid.hidden = !this.show_inner_grid.checked;
+            }
+        
+            remove_horizontal_lines() {
+                for (let i = 0; i < this.horizontal_lines.length; i++) {
+                    this.horizontal_lines[i].remove();
+                }
+                this.horizontal_lines = [];
+            }
+            
+            remove_vertical_lines() {
+                for (let i = 0; i < this.vertical_lines.length; i++) {
+                    this.vertical_lines[i].remove();
+                }
+                this.vertical_lines = [];
+            }
+        
+            add_horizontal_lines() {
+                for (let i = this.pixels_seperated_h * canvas.zoom; i < (canvas.height * canvas.zoom); i = i + this.pixels_seperated_h * canvas.zoom) {
+                    console.log(this.grid_thickness);
+                    let x = document.createElement("div");
+                    x.style = "background-color: #000000; width: " + canvas.width * canvas.zoom + "px; height: " + this.grid_thickness + "px; position: absolute; top: " + i + "px;";
+                    this.horizontal_grid.appendChild(x);
+                    this.horizontal_lines.push(x);
+                }
+            }
+            
+            add_vertical_lines() {
+                for (let i = this.pixels_seperated_w * canvas.zoom; i < (canvas.width * canvas.zoom); i = i + this.pixels_seperated_w * canvas.zoom) {
+                    let x = document.createElement("div");
+                    x.style = "background-color: #000000; height: " + canvas.height * canvas.zoom + "px; width: " + this.grid_thickness + "px; position: absolute; left: " + i + "px;";
+                    this.vertical_grid.appendChild(x);
+                    this.vertical_lines.push(x);
+                }
+            }
+        
+            apply_grid_thickness() {
+                this.grid_thickness = Number(this.grid_thickness_input.value);
+                this.redo_grid();
+            }
+            
+            redo_pixels_seperated_w() {
+                this.pixels_seperated_w = Number(this.px_sep_w.value);
+                this.redo_grid();
+            }
+            
+            redo_pixels_seperated_h() {
+                this.pixels_seperated_h = Number(this.px_sep_h.value);
+                this.redo_grid();
+            }
+            
+            redo_grid() {
+                this.remove_horizontal_lines();
+                this.remove_vertical_lines();
+                this.add_horizontal_lines();
+                this.add_vertical_lines();
+                this.grid.style = "transform: scale(" + 1 / canvas.zoom + "); transform-origin: 0% 0% 0px;";
+            }
+        }
+        
+        class Layer {
+            constructor(id) {
+                this.pixels = [];
+                this.id = id;
+                let l = document.getElementById("layer_imgs");
+
+                for (let i = 0; i < canvas.width; i++) {
+                    let sublist = [];
+                    for (let j = 0; j < canvas.height; j++) {
+                        let x = document.createElement("div");
+                        x.style = "background-color: #ffffff; height: 1px; width: 1px; position: absolute; left: " + i + "px;";
+                        sublist.push(x);
+                        l.appendChild(x);
+                    }
+                    this.pixels.push(sublist);
+                }
+
+                
+            }
+        }
+        class Layers {
+            constructor() {
+                this.layer_imgs     = document.getElementById("layer_imgs");
+                this.layer_table    = document.getElementById("layers_table");
+        
+                this.layer_count    = 0;
+                this.layer_imgs     = [];
+                this.layer_table    = [];
+                this.layer_objects  = [];
+                this.create_layer()
+            }
+
+            create_layer() {
+                this.layer_objects.push(new Layer(this.layer_count));
+                this.layer_count++;
+            }
+        }
+        
+        const canvas = new Canvas();
+        const tools  = new Tool();
+        const colour_mixer = new ColourMixer();
+        const grid = new Grid();
+        const layers = new Layers();
+        
+                // layers
+        
+                function add_layer() {
+                    return;
+                    let layer_name_imgs     = "layer_imgs_" + layer_count;
+                    let layer_name_table    = "layer_table_" + layer_count;
+                    
+                    // creating canvas to draw on
+                    let x = document.createElement("canvas");   // create a new canvas
+                    x.width = canvas_w;                         // set its width
+                    x.height = canvas_h;                        // set its height
+                    x.id = layer_imgs;                          // add an id
+                    LAYER_IMGS.appendChild(x);                  // add it to the others
+                    active_ctx = x.getContext("2d");
+                    layer_imgs.push(x);
+                    // x.style = "-webkit-font-smoothing: antialiased;";
+        
+                    var size = 200;
+                    x.style.width = canvas_w + "px";
+                    x.style.height = canvas_h + "px";
+        
+                    // coloum fot the table
+                    x = document.createElement("tr");           // create a new coloum seperator
+                    x.id = layer_name_table;                    // give it an id
+                    LAYERS_TABLE.appendChild(x);                // add the coloum to the table
+                    layer_table.push(x);
+        
+                    // row for the name
+                    let y = document.createElement("td");       // create new row seperator for the layer name
+                    y.textContent = "layer " + layer_count;     // give it content
+                    x.appendChild(y);                           // add the row to the coloumn
+                    
+                    // row for toggeling visability 
+                    y = document.createElement("td");           // create new row seperator for hiding the layer
+                    y.textContent = "visible";                  // add description 
+                    let btn = document.createElement("input");  // input for checkbox
+                    btn.type = "checkbox";                      // make it to a checkbox
+                    y.appendChild(btn);                         // add the button to the row
+                    x.appendChild(y);                           // add the row to the coloumn
+        
+                    layer_count++;
+                }
+        
+                function adapt_layer_sizes() {
+                    for (let i = 0; i < layer_imgs.length; i++) {
+                        console.log("foo " + i);
+                        let x = layer_imgs[i];
+                        x.style = "transform: scale(" + 1 / canvas_zoom + "); transform-origin: 0% 0% 0px;";
+        
+                        active_ctx.scale(canvas_w * canvas_zoom, canvas_h * canvas_zoom);
+                        //x.width = canvas_w;
+                        //x.height = canvas_h;
+                        //x.style.width = canvas_w + "px";
+                        //x.style.height = canvas_h + "px";
+                    }
+                }
+        
+                // drawing
+        
+                function getCursorPosition(canvas, event) {
+                    return;
+                    const rect = canvas.getBoundingClientRect();
+                    let x = (event.clientX - rect.left) / canvas_zoom;
+                    x = Math.floor(x);
+                    let y = (event.clientY - rect.top) / canvas_zoom;
+                    y = Math.floor(y);
+                    console.log("x: " + x + " y: " + y);
+                    active_ctx.fillStyle = HEX.textContent;
+                    active_ctx.fillRect(x, y, 1, 1);
+                }
+        
+                // universal changes
+        
+                function change_size() {
+        
+                }
+        
+            //
+            // - setup
+            //
+        
+                function setup() {
+                    // colour mixer
+                    colour_mixer.update();
+        
+                    // canvas
+                    canvas.change_width();
+                    canvas.change_height();
+                    canvas.change_zoom();
+                    canvas.change_colour();
+                    canvas.apply_changes();
+                    canvas.canvas.addEventListener('mousedown', function(e) {
+                        getCursorPosition(canvas, e)
+                    });
+        
+                    // add tool bar buttons
+                    for (let i = 0; i < tools.tools.length; i++) {
+                        let t = tools.tools[i];
+                        let x = document.createElement("button");
+        
+                        let f1 = () => {
+                            console.log(t);
+                            tools.toggle_tool(t);
+                            x.className = "activated_tool";
+                            x.onclick = f2;
+                        }
+                        let f2 = () => {
+                            console.log(t);
+                            tools.toggle_tool(t);
+                            x.className = "tool";
+                            x.onclick = f1;
+                        }
+                        x.onclick = f1;
+                        x.textContent = t;
+                        x.className = "tool";
+        
+                        tools.tool_bar.appendChild(x);
+                    }
+        
+                    // grid
+                    grid.toggle_grid();
+                    grid.toggle_inner_grid();
+                    grid.toggle_outer_grid();
+                    grid.redo_grid();
+        
+                    // layers
+                    add_layer();
+                }
+                
+                setup();
         
         /*
         let canvas = document.getElementById("my_canvas");
