@@ -191,33 +191,34 @@
             <br>
             grid thickness (in pixels):
             <input type="number" value="1" id="grid_thickness">
-            <button onclick="apply_grid_thickness()">Apply</button>
+            <button onclick="grid.apply_grid_thickness()">Apply</button>
             <br>
             pixels seperated (width):
             <input type="number" value="10" id="px_sep_w">
-            <button onclick="redo_pixels_seperated_w()">Apply</button>
+            <button onclick="grid.redo_pixels_seperated_w()">Apply</button>
             <br>
             pixels seperated (height):
             <input type="number" value="10" id="px_sep_h">
-            <button onclick="redo_pixels_seperated_h()">Apply</button>
+            <button onclick="grid.redo_pixels_seperated_h()">Apply</button>
 
             <hr>
         </div>
 
         <div id="layers" hidden>
+            <button onclick="layers.create_layer()">Create new Layer</button>
             <table id="layers_table"></table>
         </div>
     </div>
 
     <div id="canvas">
+        <div id="layer_imgs"></div>
+
         <div id="grid">
             <div id="inner_grid">
                 <div id="horizontal_grid"></div>
                 <div id="vertical_grid"></div>
             </div>
         </div>
-
-        <div id="layer_imgs"></div>
     </div>
 
     <div id="outer_grid"></div>
@@ -439,36 +440,105 @@
             constructor(id) {
                 this.pixels = [];
                 this.id = id;
+                this.layer = document.createElement("div");
                 let l = document.getElementById("layer_imgs");
 
                 for (let i = 0; i < canvas.width; i++) {
                     let sublist = [];
                     for (let j = 0; j < canvas.height; j++) {
                         let x = document.createElement("div");
-                        x.style = "background-color: #ffffff; height: 1px; width: 1px; position: absolute; left: " + i + "px;";
+                        x.style = "background-color: #ff0000; height: 1px; width: 1px; position: absolute; top: " + i + "px; left: " + j+ "px;";
+                        x.hidden = true;
                         sublist.push(x);
-                        l.appendChild(x);
+                        this.layer.appendChild(x);
                     }
                     this.pixels.push(sublist);
                 }
 
-                
+                l.appendChild(this.layer);
             }
         }
+
         class Layers {
             constructor() {
-                this.layer_imgs     = document.getElementById("layer_imgs");
-                this.layer_table    = document.getElementById("layers_table");
+                this.layer_gui_table    = document.getElementById("layers_table");
+                this.layer_imgs         = document.getElementById("layer_imgs");
         
                 this.layer_count    = 0;
-                this.layer_imgs     = [];
                 this.layer_table    = [];
                 this.layer_objects  = [];
-                this.create_layer()
+                this.current_layer  = 0;
             }
 
             create_layer() {
-                this.layer_objects.push(new Layer(this.layer_count));
+                let l = new Layer(this.layer_count);
+                this.layer_objects.push(l);
+                let layer_gui = document.createElement("td");
+
+                // layer name
+                let layer_name = document.createElement("div");
+                let name_input = document.createElement("input");
+                name_input.value = "Layer: " + this.layer_count;
+                layer_name.appendChild(name_input);
+                layer_gui.appendChild(layer_name);
+
+                // hide button
+                let toggle_visability = document.createElement("div");
+                let visability_text = document.createElement("div");
+                visability_text.textContent = "visible: ";
+                let visability_checkbox = document.createElement("input");
+                visability_checkbox.type = "checkbox";
+                visability_checkbox.checked = true;
+                visability_checkbox.onclick = () => {
+                    l.layer.hidden = !l.layer.hidden;
+                };
+                toggle_visability.appendChild(visability_text);
+                toggle_visability.appendChild(visability_checkbox);
+                layer_gui.appendChild(toggle_visability);
+
+                // select button
+                let select_button = document.createElement("button");
+                select_button.textContent = "Select";
+                select_button.onclick = () => {
+                    this.layer_table[this.current_layer].style.backgroundColor = "";
+                    this.current_layer = l.id;
+                    layer_gui.style.backgroundColor = "#f652a0";
+                };
+                layer_gui.appendChild(select_button);
+
+                // delete button
+                let delete_button = document.createElement("button");
+                delete_button.textContent = "Delete";
+                delete_button.onclick = () => {
+                    let x = this.layer_objects[l.id];
+                    x.layer.remove()
+                    this.layer_objects[l.id] = null;
+
+                    x = this.layer_table[l.id];
+                    x.remove();
+                    this.layer_table[l.id] = null;
+
+                    if (this.current_layer == l.id) {
+                        for (let i = 0; i < this.layer_objects.length; i++) {
+                            if (this.layer_objects[i] != null) {
+                                this.current_layer = i;
+                                this.layer_table[this.current_layer].style.backgroundColor = "#f652a0";
+                                return;
+                            }
+                        }
+                        this.current_layer = this.layer_count;
+                        this.create_layer();
+                    }
+                };
+                layer_gui.appendChild(delete_button);
+
+                this.layer_table.push(layer_gui);
+                this.layer_gui_table.appendChild(layer_gui);
+
+                this.layer_table[this.current_layer].style.backgroundColor = "";
+                layer_gui.style.backgroundColor = "#f652a0";
+                
+                this.current_layer = this.layer_count;
                 this.layer_count++;
             }
         }
@@ -536,25 +606,30 @@
                     }
                 }
         
-                // drawing
-        
-                function getCursorPosition(canvas, event) {
-                    return;
-                    const rect = canvas.getBoundingClientRect();
-                    let x = (event.clientX - rect.left) / canvas_zoom;
-                    x = Math.floor(x);
-                    let y = (event.clientY - rect.top) / canvas_zoom;
-                    y = Math.floor(y);
-                    console.log("x: " + x + " y: " + y);
-                    active_ctx.fillStyle = HEX.textContent;
-                    active_ctx.fillRect(x, y, 1, 1);
-                }
-        
-                // universal changes
-        
-                function change_size() {
-        
-                }
+        // drawing
+
+        function getCursorPosition(canvas, event) {
+            const rect = canvas.canvas.getBoundingClientRect();
+            let x = (event.clientX - rect.left) / canvas.zoom;
+            x = Math.floor(x);
+            let y = (event.clientY - rect.top) / canvas.zoom;
+            y = Math.floor(y);
+            console.log("x: " + x + " y: " + y);
+
+            let layer = layers.layer_objects[layers.current_layer];
+            if (!layer.layer.hidden) {
+                let pixel = layer.pixels[y][x];
+                pixel.style.backgroundColor = colour_mixer.hex_value.textContent;
+                pixel.hidden = false;
+            }
+            
+        }
+
+        // universal changes
+
+        function change_size() {
+
+        }
         
             //
             // - setup
@@ -605,7 +680,7 @@
                     grid.redo_grid();
         
                     // layers
-                    add_layer();
+                    layers.create_layer();
                 }
                 
                 setup();
