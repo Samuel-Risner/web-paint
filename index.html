@@ -259,14 +259,12 @@
 
             change_width() {
                 this.width = Number(this.width_input.value);
-                change_size();
                 this.apply_changes();
                 grid.redo_grid();
             }
 
             change_height() {
                 this.height = Number(this.width_input.value);
-                change_size();
                 this.apply_changes();
                 grid.redo_grid();
             }
@@ -293,7 +291,7 @@
                 this.canvas.style = "background-color: " + this.bg_colour + "; height: " + this.height + "px; width: " + this.width + "px; transform: scale(" + this.zoom + "); transform-origin: 0% 0% 0px;";
             }
         }
-        
+
         class Tool {
             constructor() {
                 this.tool_bar = document.getElementById("tool_bar");
@@ -305,7 +303,7 @@
                 e.hidden = !e.hidden;
             }
         }
-        
+
         class ColourMixer{
             constructor() {
                 this.rgb_display = [
@@ -344,7 +342,7 @@
                 this.colour_preview.style = "background-color: " + this.hex_value.textContent + ";";
             }
         }
-        
+
         class Grid {
             constructor() {
                 this.grid               = document.getElementById("grid");
@@ -435,7 +433,7 @@
                 this.grid.style = "transform: scale(" + 1 / canvas.zoom + "); transform-origin: 0% 0% 0px;";
             }
         }
-        
+
         class Layer {
             constructor(id) {
                 this.pixels = [];
@@ -447,8 +445,7 @@
                     let sublist = [];
                     for (let j = 0; j < canvas.height; j++) {
                         let x = document.createElement("div");
-                        x.style = "background-color: #ff0000; height: 1px; width: 1px; position: absolute; top: " + i + "px; left: " + j+ "px;";
-                        x.hidden = true;
+                        x.style = "height: 1px; width: 1px; position: absolute; top: " + i + "px; left: " + j+ "px;";
                         sublist.push(x);
                         this.layer.appendChild(x);
                     }
@@ -542,73 +539,24 @@
                 this.layer_count++;
             }
         }
-        
-        const canvas = new Canvas();
-        const tools  = new Tool();
-        const colour_mixer = new ColourMixer();
-        const grid = new Grid();
-        const layers = new Layers();
-        
-                // layers
-        
-                function add_layer() {
-                    return;
-                    let layer_name_imgs     = "layer_imgs_" + layer_count;
-                    let layer_name_table    = "layer_table_" + layer_count;
-                    
-                    // creating canvas to draw on
-                    let x = document.createElement("canvas");   // create a new canvas
-                    x.width = canvas_w;                         // set its width
-                    x.height = canvas_h;                        // set its height
-                    x.id = layer_imgs;                          // add an id
-                    LAYER_IMGS.appendChild(x);                  // add it to the others
-                    active_ctx = x.getContext("2d");
-                    layer_imgs.push(x);
-                    // x.style = "-webkit-font-smoothing: antialiased;";
-        
-                    var size = 200;
-                    x.style.width = canvas_w + "px";
-                    x.style.height = canvas_h + "px";
-        
-                    // coloum fot the table
-                    x = document.createElement("tr");           // create a new coloum seperator
-                    x.id = layer_name_table;                    // give it an id
-                    LAYERS_TABLE.appendChild(x);                // add the coloum to the table
-                    layer_table.push(x);
-        
-                    // row for the name
-                    let y = document.createElement("td");       // create new row seperator for the layer name
-                    y.textContent = "layer " + layer_count;     // give it content
-                    x.appendChild(y);                           // add the row to the coloumn
-                    
-                    // row for toggeling visability 
-                    y = document.createElement("td");           // create new row seperator for hiding the layer
-                    y.textContent = "visible";                  // add description 
-                    let btn = document.createElement("input");  // input for checkbox
-                    btn.type = "checkbox";                      // make it to a checkbox
-                    y.appendChild(btn);                         // add the button to the row
-                    x.appendChild(y);                           // add the row to the coloumn
-        
-                    layer_count++;
-                }
-        
-                function adapt_layer_sizes() {
-                    for (let i = 0; i < layer_imgs.length; i++) {
-                        console.log("foo " + i);
-                        let x = layer_imgs[i];
-                        x.style = "transform: scale(" + 1 / canvas_zoom + "); transform-origin: 0% 0% 0px;";
-        
-                        active_ctx.scale(canvas_w * canvas_zoom, canvas_h * canvas_zoom);
-                        //x.width = canvas_w;
-                        //x.height = canvas_h;
-                        //x.style.width = canvas_w + "px";
-                        //x.style.height = canvas_h + "px";
-                    }
-                }
-        
-        // drawing
 
-        function getCursorPosition(canvas, event) {
+        class BackgroundColourHistory {
+            constructor() {
+                this.history_element = null;
+            }
+        }
+
+        const canvas        = new Canvas();
+        const tools         = new Tool();
+        const colour_mixer  = new ColourMixer();
+        const grid          = new Grid();
+        const layers        = new Layers();
+
+        //
+        // drawing
+        // 
+
+        function draw(canvas, event) {
             const rect = canvas.canvas.getBoundingClientRect();
             let x = (event.clientX - rect.left) / canvas.zoom;
             x = Math.floor(x);
@@ -618,72 +566,63 @@
 
             let layer = layers.layer_objects[layers.current_layer];
             if (!layer.layer.hidden) {
-                let pixel = layer.pixels[y][x];
-                pixel.style.backgroundColor = colour_mixer.hex_value.textContent;
-                pixel.hidden = false;
+                let pixel = layer.pixels[y][x].style.backgroundColor = colour_mixer.hex_value.textContent;
             }
-            
         }
 
-        // universal changes
+        //
+        // - setup
+        //
 
-        function change_size() {
+        function setup() {
+            // colour mixer
+            colour_mixer.update();
 
+            // canvas
+            canvas.change_width();
+            canvas.change_height();
+            canvas.change_zoom();
+            canvas.change_colour();
+            canvas.apply_changes();
+            canvas.canvas.addEventListener('mousedown', function(e) {
+                draw(canvas, e);
+            });
+
+            // add tool bar buttons
+            for (let i = 0; i < tools.tools.length; i++) {
+                let t = tools.tools[i];
+                let x = document.createElement("button");
+
+                let f1 = () => {
+                    // console.log(t);
+                    tools.toggle_tool(t);
+                    x.className = "activated_tool";
+                    x.onclick = f2;
+                };
+                let f2 = () => {
+                    // console.log(t);
+                    tools.toggle_tool(t);
+                    x.className = "tool";
+                    x.onclick = f1;
+                };
+                x.onclick = f1;
+                x.textContent = t;
+                x.className = "tool";
+
+                tools.tool_bar.appendChild(x);
+            }
+
+            // grid
+            grid.toggle_grid();
+            grid.toggle_inner_grid();
+            grid.toggle_outer_grid();
+            grid.redo_grid();
+
+            // layers
+            layers.create_layer();
         }
         
-            //
-            // - setup
-            //
-        
-                function setup() {
-                    // colour mixer
-                    colour_mixer.update();
-        
-                    // canvas
-                    canvas.change_width();
-                    canvas.change_height();
-                    canvas.change_zoom();
-                    canvas.change_colour();
-                    canvas.apply_changes();
-                    canvas.canvas.addEventListener('mousedown', function(e) {
-                        getCursorPosition(canvas, e)
-                    });
-        
-                    // add tool bar buttons
-                    for (let i = 0; i < tools.tools.length; i++) {
-                        let t = tools.tools[i];
-                        let x = document.createElement("button");
-        
-                        let f1 = () => {
-                            console.log(t);
-                            tools.toggle_tool(t);
-                            x.className = "activated_tool";
-                            x.onclick = f2;
-                        }
-                        let f2 = () => {
-                            console.log(t);
-                            tools.toggle_tool(t);
-                            x.className = "tool";
-                            x.onclick = f1;
-                        }
-                        x.onclick = f1;
-                        x.textContent = t;
-                        x.className = "tool";
-        
-                        tools.tool_bar.appendChild(x);
-                    }
-        
-                    // grid
-                    grid.toggle_grid();
-                    grid.toggle_inner_grid();
-                    grid.toggle_outer_grid();
-                    grid.redo_grid();
-        
-                    // layers
-                    layers.create_layer();
-                }
-                
-                setup();
+        setup();
         
         /*
         let canvas = document.getElementById("my_canvas");
