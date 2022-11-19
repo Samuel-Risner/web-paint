@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%; width: 100%;">
+<html lang="en" style="width: 100%; height: 100%;">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>web-paint</title>
 </head>
-<body style="height: 100%; width: 100%;">
+<body style="width: 100%; height: 100%; margin: 0px;">
     <style>
         button.tool {
             background-color: #4c5270;
@@ -45,7 +45,139 @@
         h2 {
             font-size: 20px;
         }
+
+        /*
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        */
+
+        .tool_bar {
+            /*background-color: #055c9d;*/
+            position: relative;
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 20%;
+            min-height: 100px;
+            min-width: 600px;
+        }
+
+        .tool_quick_access {
+            position: relative;
+            top: 0;
+            left: 0;
+
+            height: 15%;
+            width: 100%;
+
+            background-color: aqua;
+        }
+
+        .tool_category_selector {
+            position: relative;
+            top: 0;
+            left: 0;
+
+            height: 20%;
+            width: 100%;
+
+            background-color: #4c5270;
+        }
+
+        .tool {
+            background-color: #ffffff;
+
+            width: 5%;
+            height: 100%;
+
+            text-align: center;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 100%;
+
+            float: left;
+        }
+
+        .tool_selected {
+            background-color: #f5f6f7;
+
+            width: 5%;
+            height: 100%;
+
+            text-align: center;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 100%;
+
+            float: left;
+
+            border-color: black;
+            border-style: solid;
+            border-top-width: 1px;
+            border-bottom-width: 0px;
+            border-left-width: 1px;
+            border-right-width: 1px;
+        }
+
+        .tool_menu {
+            background-color: #f5f6f7;
+
+            width: 100%;
+            height: 65%;
+
+            border-color: black;
+            border-style: solid;
+            border-top-width: 1px;
+            border-bottom-width: 1px;
+            border-left-width: 0px;
+            border-right-width: 0px;
+        }
+
     </style>
+
+    <div id="new_tool_bar" class="tool_bar">
+        <div id="tool_quick_access" class="tool_quick_access"><!-- gets filled by js --></div>
+
+        <div id="tool_category_selector" class="tool_category_selector"><!-- gets filled by js --></div>
+
+        <div id="place_for_tool_menu" class="tool_menu">
+            <!-- ids: e.g. "tool_Export", "tool_Import" -->
+
+            <div id="tool_Export" hidden>
+
+            </div>
+
+            <div id="tool_Import" hidden>
+
+            </div>
+
+            <div id="tool_Grid" hidden>
+                
+                <div style="float: left;">
+                    <input type="checkbox" id="show_grid" onclick="grid.toggle_grid()" checked="true">
+                    show grid
+                    <br>
+                    <input type="checkbox" id="show_outer_grid" onclick="grid.toggle_outer_grid()" checked="true">
+                    show outer grid
+                    <br>
+                    <input type="checkbox" id="show_inner_grid" onclick="grid.toggle_inner_grid()" checked="true">
+                    show inner grid:
+                </div>
+
+                <div style="float: left;">
+                    grid thickness (in pixels):
+                    <input type="number" value="1" id="grid_thickness">
+                    <button onclick="grid.apply_grid_thickness()">Apply</button>
+                    <br>
+                    pixels seperated (width):
+                    <input type="number" value="10" id="px_sep_w">
+                    <button onclick="grid.redo_pixels_seperated_w()">Apply</button>
+                    <br>
+                    pixels seperated (height):
+                    <input type="number" value="10" id="px_sep_h">
+                    <button onclick="grid.redo_pixels_seperated_h()">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="tool_bar"></div>
 
@@ -180,26 +312,8 @@
                 grid settings
             </h1>
 
-            show grid:
-            <input type="checkbox" id="show_grid" onclick="grid.toggle_grid()" checked="true">
-            <br>
-            show outer grid:
-            <input type="checkbox" id="show_outer_grid" onclick="grid.toggle_outer_grid()" checked="true">
-            <br>
-            show inner grid:
-            <input type="checkbox" id="show_inner_grid" onclick="grid.toggle_inner_grid()" checked="true">
-            <br>
-            grid thickness (in pixels):
-            <input type="number" value="1" id="grid_thickness">
-            <button onclick="grid.apply_grid_thickness()">Apply</button>
-            <br>
-            pixels seperated (width):
-            <input type="number" value="10" id="px_sep_w">
-            <button onclick="grid.redo_pixels_seperated_w()">Apply</button>
-            <br>
-            pixels seperated (height):
-            <input type="number" value="10" id="px_sep_h">
-            <button onclick="grid.redo_pixels_seperated_h()">Apply</button>
+            
+            
 
             <hr>
         </div>
@@ -546,11 +660,61 @@
             }
         }
 
+        class ToolMenu {
+            constructor() {
+                this.QUICK_ACCESS_ELEMENT       = document.getElementById("tool_quick_access");
+                this.CATEGORY_SELECTOR_ELEMENT  = document.getElementById("tool_category_selector");
+                this.TOOL_MENU_ELEMENT          = document.getElementById("place_for_tool_menu");
+
+                this.TOOL_IDS               = ["Import", "Export", "Grid"];
+                this.TOOL_BUTTONS_ELEMENTS  = [];
+                this.TOOL_ELEMENTS          = [];
+
+                this._setup_tools();
+
+                this.current_tool = 0;
+
+                this.TOOL_BUTTONS_ELEMENTS[0].click();
+            }
+
+            _setup_tools() {
+                for (let i = 0; i < this.TOOL_IDS.length; i++) {
+                    // get tool name
+                    let id = this.TOOL_IDS[i];
+
+                    // get tool element
+                    let tool_element = document.getElementById("tool_" + id);
+                    this.TOOL_ELEMENTS.push(tool_element);
+
+                    // create button
+                    let btn = document.createElement("div");
+                    btn.textContent = id;
+                    btn.className = "tool";
+                    btn.onclick = () => {
+                        // change previous apperance
+                        this.TOOL_BUTTONS_ELEMENTS[this.current_tool].className = "tool";
+                        this.TOOL_ELEMENTS[this.current_tool].hidden = true;
+
+                        // change own apperance
+                        btn.className = "tool_selected";
+                        tool_element.hidden = false;
+
+                        // change current tool
+                        this.current_tool = i;
+                    };
+                    this.CATEGORY_SELECTOR_ELEMENT.appendChild(btn);
+                    this.TOOL_BUTTONS_ELEMENTS.push(btn);
+                }
+            }
+        }
+
         const canvas        = new Canvas();
         const tools         = new Tool();
         const colour_mixer  = new ColourMixer();
         const grid          = new Grid();
         const layers        = new Layers();
+
+        const tool_menu     = new ToolMenu();
 
         //
         // drawing
