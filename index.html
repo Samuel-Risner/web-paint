@@ -143,6 +143,24 @@
             padding-left: 5px;
         }
 
+        .palette_colours {
+            float: left;
+
+            /* background-color: red; */
+            
+            aspect-ratio: 1 / 1;
+            height: 75%;
+
+            border: 2px #ffffff;
+            border-style: solid;
+
+            outline: 1px;
+            outline-color: #a0a0a0;
+            outline-style: solid;
+
+            margin: 2px;
+        }
+
     </style>
 
     <div id="new_tool_bar" class="tool_bar">
@@ -243,6 +261,90 @@
                     </tr>
                 </table>
             </div>
+
+            <div id="tool_Colour" hidden style="height: 100%;">
+                <table style="width: auto; height: auto; float: left;">
+                    <tr>
+                        <td>
+                            red:
+                        </td>
+                        <td>
+                            <div id="colour_red"></div>
+                        </td>
+                        <td>
+                            <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_red" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
+                        </td>
+                        <td id="colour_preview"></td>
+                        <!-- <td id="palette_row_0" style="width: auto; height: auto;"></td> -->
+                    </tr>
+                    <tr>
+                        <td>
+                            green:
+                        </td>
+                        <td>
+                            <div id="colour_green"></div>
+                        </td>
+                        <td>
+                            <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_green" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
+                        </td>
+                        <td id="rgb"></td>
+                        <!-- <td id="palette_row_1" style="width: auto; height: auto;"></td> -->
+                    </tr>
+                    <tr>
+                        <td>
+                            blue:
+                        </td>
+                        <td>
+                            <div id="colour_blue"></div>
+                        </td>
+                        <td>
+                            <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_blue" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
+                        </td>
+                        <td id="hex"></td>
+                        <!-- <td id="palette_row_2" style="width: auto; height: auto;"></td> -->
+                    </tr>
+                    <tr style="visibility: hidden; height: 0px;">
+                        <td></td>
+                        <td>255</td>
+                        <td></td>
+                        <td>rgb(255,255,255)</td>
+                    </tr>
+                </table>
+
+                <div style="float: left; height: 100%; width: 50%;">
+                    <div id="palette_row_0" style="width: 100%; height: 30%; float: left;"></div>
+                    <div id="palette_row_1" style="width: 100%; height: 30%; float: left;"></div>
+                    <div id="palette_row_2" style="width: 100%; height: 30%; float: left;"></div>
+                </div>
+
+                <table>
+                    <tr>
+                        <td>
+                            rgb
+                        </td>
+                        <td>
+                            <div id="background_rgb_display"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            hex
+                        </td>
+                        <td>
+                            <div id="background_hex_display"></div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div>
+                    <button onclick="canvas.change_colour()">Use from colour mixer</button>
+                    <br>
+                    <input type="checkbox">
+                    transparent background (only noticable when image is exported)
+                </div>
+            </div>
+
+            <div id="tool_Layers" hidden></div>
         </div>
     </div>
 
@@ -254,44 +356,7 @@
                 colour mixer
             </h1>
             
-            <table>
-                <tr>
-                    <td>
-                        red:
-                    </td>
-                    <td>
-                        <div id="colour_red"></div>
-                    </td>
-                    <td>
-                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_red" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
-                    </td>
-                    <td id="colour_preview"></td>
-                </tr>
-                <tr>
-                    <td>
-                        green:
-                    </td>
-                    <td>
-                        <div id="colour_green"></div>
-                    </td>
-                    <td>
-                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_green" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
-                    </td>
-                    <td id="rgb"></td>
-                </tr>
-                <tr>
-                    <td>
-                        blue:
-                    </td>
-                    <td>
-                        <div id="colour_blue"></div>
-                    </td>
-                    <td>
-                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_blue" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
-                    </td>
-                    <td id="hex"></td>
-                </tr>
-            </table>
+            
 
             <hr>
         </div>
@@ -327,31 +392,9 @@
                 background colour
             </h1>
 
-            <table>
-                <tr>
-                    <td>
-                        rgb
-                    </td>
-                    <td>
-                        hex
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div id="background_rgb_display"></div>
-                    </td>
-                    <td>
-                        <div id="background_hex_display"></div>
-                    </td>
-                </tr>
-            </table>
+            
 
-            <div>
-                <button onclick="canvas.change_colour()">Use from colour mixer</button>
-                <br>
-                transparent background (only noticable when image is exported):
-                <input type="checkbox">
-            </div>
+            
 
             <hr>
         </div>
@@ -715,7 +758,7 @@
                 this.CATEGORY_SELECTOR_ELEMENT  = document.getElementById("tool_category_selector");
                 this.TOOL_MENU_ELEMENT          = document.getElementById("place_for_tool_menu");
 
-                this.TOOL_IDS               = ["Import", "Export", "Canvas"];
+                this.TOOL_IDS               = ["Import", "Export", "Canvas", "Colour", "Layers"];
                 this.TOOL_BUTTONS_ELEMENTS  = [];
                 this.TOOL_ELEMENTS          = [];
 
@@ -757,6 +800,24 @@
             }
         }
 
+        class Palette{
+            constructor() {
+                this.ROW_ELEMENTS = [];
+                this.AMOUNT_ROWS  = 3;
+                this.AMOUNT_COLUMNS = 20;
+
+                for (let i = 0; i < this.AMOUNT_ROWS; i++) {
+                    this.ROW_ELEMENTS.push(document.getElementById("palette_row_" + i));
+                    console.log(this.ROW_ELEMENTS[i]);
+                    for (let j = 0; j < this.AMOUNT_COLUMNS; j++) {
+                        let x = document.createElement("div");
+                        x.className = "palette_colours";
+                        this.ROW_ELEMENTS[i].appendChild(x);
+                    }
+                }
+            }
+        }
+
         const canvas        = new Canvas();
         const tools         = new Tool();
         const colour_mixer  = new ColourMixer();
@@ -764,6 +825,7 @@
         const layers        = new Layers();
 
         const tool_menu     = new ToolMenu();
+        const palette       = new Palette();
 
         //
         // drawing
