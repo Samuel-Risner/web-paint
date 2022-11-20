@@ -80,8 +80,6 @@
 
             height: 20%;
             width: 100%;
-
-            background-color: #4c5270;
         }
 
         .tool {
@@ -109,7 +107,7 @@
 
             float: left;
 
-            border-color: black;
+            border-color: #dadbdc;
             border-style: solid;
             border-top-width: 1px;
             border-bottom-width: 0px;
@@ -123,12 +121,26 @@
             width: 100%;
             height: 65%;
 
-            border-color: black;
+            border-color: #dadbdc;
             border-style: solid;
             border-top-width: 1px;
             border-bottom-width: 1px;
             border-left-width: 0px;
             border-right-width: 0px;
+        }
+
+        .table_vertical_border {
+            border-top: 0px;
+            border-bottom: 0px;
+            border-left: 0px;
+            border-right: 1px;
+            border-color: #dadbdc;
+            border-style: solid;
+            padding-right: 5px;
+        }
+
+        .table_vertical_border_2 {
+            padding-left: 5px;
         }
 
     </style>
@@ -149,32 +161,87 @@
 
             </div>
 
-            <div id="tool_Grid" hidden>
-                
-                <div style="float: left;">
-                    <input type="checkbox" id="show_grid" onclick="grid.toggle_grid()" checked="true">
-                    show grid
-                    <br>
-                    <input type="checkbox" id="show_outer_grid" onclick="grid.toggle_outer_grid()" checked="true">
-                    show outer grid
-                    <br>
-                    <input type="checkbox" id="show_inner_grid" onclick="grid.toggle_inner_grid()" checked="true">
-                    show inner grid:
-                </div>
-
-                <div style="float: left;">
-                    grid thickness (in pixels):
-                    <input type="number" value="1" id="grid_thickness">
-                    <button onclick="grid.apply_grid_thickness()">Apply</button>
-                    <br>
-                    pixels seperated (width):
-                    <input type="number" value="10" id="px_sep_w">
-                    <button onclick="grid.redo_pixels_seperated_w()">Apply</button>
-                    <br>
-                    pixels seperated (height):
-                    <input type="number" value="10" id="px_sep_h">
-                    <button onclick="grid.redo_pixels_seperated_h()">Apply</button>
-                </div>
+            <div id="tool_Canvas" hidden style="height: 100%;">
+                <table style="height: 100%; border-collapse:collapse;">
+                    <tr style="border:none;">
+                        <td>
+                            <input type="checkbox" id="show_grid" onclick="grid.toggle_grid()" checked="true">
+                        </td>
+                        <td class="table_vertical_border">
+                            show grid
+                        </td>
+                        <td class="table_vertical_border_2">
+                            grid thickness (in pixels):
+                        </td>
+                        <td>
+                            <input type="number" value="1" id="grid_thickness">
+                        </td>
+                        <td class="table_vertical_border">
+                            <button onclick="grid.apply_grid_thickness()">Apply</button>
+                        </td>
+                        <td class="table_vertical_border_2">
+                            width:
+                        </td>
+                        <td>
+                            <input type="number" id="canvas_w_input" value="50">
+                        </td>
+                        <td>
+                            <button onclick="canvas.change_width()">Apply</button>
+                        </td>
+                    </tr>
+                    <tr style="border:none;">
+                        <td>
+                            <input type="checkbox" id="show_outer_grid" onclick="grid.toggle_outer_grid()" checked="true">
+                        </td>
+                        <td class="table_vertical_border">
+                            show outer grid
+                        </td>
+                        <td class="table_vertical_border_2">
+                            pixels seperated (width):
+                        </td>
+                        <td>
+                            <input type="number" value="10" id="px_sep_w">
+                        </td>
+                        <td class="table_vertical_border">
+                            <button onclick="grid.redo_pixels_seperated_w()">Apply</button>
+                        </td>
+                        <td class="table_vertical_border_2">
+                            height:
+                        </td>
+                        <td>
+                            <input type="number" id="canvas_h_input" value="50">
+                        </td>
+                        <td>
+                            <button onclick="canvas.change_height()">Apply</button>
+                        </td>
+                    </tr>
+                    <tr style="border:none;">
+                        <td>
+                            <input type="checkbox" id="show_inner_grid" onclick="grid.toggle_inner_grid()" checked="true">
+                        </td>
+                        <td class="table_vertical_border">
+                            show inner grid
+                        </td>
+                        <td class="table_vertical_border_2">
+                            pixels seperated (height):
+                        </td>
+                        <td>
+                            <input type="number" value="10" id="px_sep_h">
+                        </td>
+                        <td class="table_vertical_border">
+                            <button onclick="grid.redo_pixels_seperated_h()">Apply</button>
+                        </td>
+                        <td class="table_vertical_border_2">
+                            zoom:
+                        </td>
+                        <td>
+                            <input type="number" value="10" id="canvas_zoom">
+                        </td>
+                        <td>
+                            <button onclick="canvas.change_zoom()">Apply</button>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -236,26 +303,10 @@
 
             <table>
                 <tr>
-                    <td>
-                        width:
-                    </td>
-                    <td>
-                        <input type="number" id="canvas_w_input" value="50">
-                    </td>
-                    <td>
-                        <button onclick="canvas.change_width()">Apply</button>
-                    </td>
+                    
                 </tr>
                 <tr>
-                    <td>
-                        height:
-                    </td>
-                    <td>
-                        <input type="number" id="canvas_h_input" value="50">
-                    </td>
-                    <td>
-                        <button onclick="canvas.change_height()">Apply</button>
-                    </td>
+                    
                 </tr>
             </table>
 
@@ -267,8 +318,6 @@
                 zoom
             </h1>
 
-            <input type="number" value="10" id="canvas_zoom">
-            <button onclick="canvas.change_zoom()">Apply</button>
 
             <hr>
         </div>
@@ -666,7 +715,7 @@
                 this.CATEGORY_SELECTOR_ELEMENT  = document.getElementById("tool_category_selector");
                 this.TOOL_MENU_ELEMENT          = document.getElementById("place_for_tool_menu");
 
-                this.TOOL_IDS               = ["Import", "Export", "Grid"];
+                this.TOOL_IDS               = ["Import", "Export", "Canvas"];
                 this.TOOL_BUTTONS_ELEMENTS  = [];
                 this.TOOL_ELEMENTS          = [];
 
