@@ -8,54 +8,10 @@
 </head>
 <body style="width: 100%; height: 100%; margin: 0px;">
     <style>
-        button.tool {
-            background-color: #4c5270;
-            border: none;
-            color: #ffffff;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-        }
-
-        /* button.tool:hover {
-            background-color: #0e86d4;
-        } */
-
-        button.activated_tool {
-            background-color: #055c9d;
-            border: none;
-            color: #ffffff;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-        }
-
-        /* button.activated_tool:hover {
-            background-color: #68bbe3;
-        } */
-
-        h1 {
-            font-size: 24px;
-        }
-
-        h2 {
-            font-size: 20px;
-        }
-
-        /*
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        */
-
         .tool_bar {
-            /*background-color: #055c9d;*/
             position: relative;
             top: 0;
             left: 0;
-
             width: 100%;
             height: 20%;
             min-height: 100px;
@@ -129,24 +85,9 @@
             border-right-width: 0px;
         }
 
-        .table_vertical_border {
-            border-top: 0px;
-            border-bottom: 0px;
-            border-left: 0px;
-            border-right: 1px;
-            border-color: #dadbdc;
-            border-style: solid;
-            padding-right: 5px;
-        }
-
-        .table_vertical_border_2 {
-            padding-left: 5px;
-        }
-
         .palette_colours {
+            /*
             float: left;
-
-            /* background-color: red; */
             
             aspect-ratio: 1 / 1;
             height: 75%;
@@ -159,11 +100,36 @@
             outline-style: solid;
 
             margin: 2px;
+            */
+
+            height: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: red;
+            float: left;
+        }
+
+        .fake_table_column {
+            float: left;
+            height: 100%;
+        }
+
+        .fake_table_column_seperators {
+            /* use: "<div class="fake_table_column_seperators"></div>" */
+            height: 100%;
+            width: 2px;
+            background-color: #dadbdc;
+            float: left;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        .fake_table_entry {
+            height: 33.3%;
         }
 
     </style>
 
-    <div id="new_tool_bar" class="tool_bar">
+    <div id="tool_bar" class="tool_bar">
         <div id="tool_quick_access" class="tool_quick_access"><!-- gets filled by js --></div>
 
         <div id="tool_category_selector" class="tool_category_selector"><!-- gets filled by js --></div>
@@ -172,7 +138,27 @@
             <!-- ids: e.g. "tool_Export", "tool_Import" -->
 
             <div id="tool_Export" hidden>
-
+                <label for="export_file_type">
+                    Choose a file type for exporting:
+                </label>
+                <select name="export_file_type" id="export_file_type">
+                    <option value="image/png">PNG (default)</option>
+                    <option value="image/jpeg">JPEG</option>
+                    <!-- <option value="image/apng">APNG</option> -->
+                    <!-- <option value="image/avif">AVIF</option> -->
+                    <!-- <option value="image/gif">GIF</option> -->
+                    <!-- <option value="image/svg+xml">SVG</option> -->
+                    <option value="image/webp">WebP</option>
+                    <option value="image/bmp">BMP</option>
+                    <!-- <option value="image/x-icon">ICO</option> -->
+                    <!-- <option value="image/tiff">TIFF</option> -->
+                </select>
+                <br>
+                define background 
+                <input type="checkbox" id="export_define_background">
+                <br>
+                when exporting, all layers are combined
+                <br>
             </div>
 
             <div id="tool_Import" hidden>
@@ -180,254 +166,210 @@
             </div>
 
             <div id="tool_Canvas" hidden style="height: 100%;">
-                <table style="height: 100%; border-collapse:collapse;">
-                    <tr style="border:none;">
-                        <td>
-                            <input type="checkbox" id="show_grid" onclick="grid.toggle_grid()" checked="true">
-                        </td>
-                        <td class="table_vertical_border">
-                            show grid
-                        </td>
-                        <td class="table_vertical_border_2">
-                            grid thickness (in pixels):
-                        </td>
-                        <td>
-                            <input type="number" value="1" id="grid_thickness">
-                        </td>
-                        <td class="table_vertical_border">
-                            <button onclick="grid.apply_grid_thickness()">Apply</button>
-                        </td>
-                        <td class="table_vertical_border_2">
-                            width:
-                        </td>
-                        <td>
-                            <input type="number" id="canvas_w_input" value="50">
-                        </td>
-                        <td>
-                            <button onclick="canvas.change_width()">Apply</button>
-                        </td>
-                    </tr>
-                    <tr style="border:none;">
-                        <td>
-                            <input type="checkbox" id="show_outer_grid" onclick="grid.toggle_outer_grid()" checked="true">
-                        </td>
-                        <td class="table_vertical_border">
-                            show outer grid
-                        </td>
-                        <td class="table_vertical_border_2">
-                            pixels seperated (width):
-                        </td>
-                        <td>
-                            <input type="number" value="10" id="px_sep_w">
-                        </td>
-                        <td class="table_vertical_border">
-                            <button onclick="grid.redo_pixels_seperated_w()">Apply</button>
-                        </td>
-                        <td class="table_vertical_border_2">
-                            height:
-                        </td>
-                        <td>
-                            <input type="number" id="canvas_h_input" value="50">
-                        </td>
-                        <td>
-                            <button onclick="canvas.change_height()">Apply</button>
-                        </td>
-                    </tr>
-                    <tr style="border:none;">
-                        <td>
-                            <input type="checkbox" id="show_inner_grid" onclick="grid.toggle_inner_grid()" checked="true">
-                        </td>
-                        <td class="table_vertical_border">
-                            show inner grid
-                        </td>
-                        <td class="table_vertical_border_2">
-                            pixels seperated (height):
-                        </td>
-                        <td>
-                            <input type="number" value="10" id="px_sep_h">
-                        </td>
-                        <td class="table_vertical_border">
-                            <button onclick="grid.redo_pixels_seperated_h()">Apply</button>
-                        </td>
-                        <td class="table_vertical_border_2">
-                            zoom:
-                        </td>
-                        <td>
-                            <input type="number" value="10" id="canvas_zoom">
-                        </td>
-                        <td>
-                            <button onclick="canvas.change_zoom()">Apply</button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div id="tool_Colour" hidden style="height: 100%;">
-                <table style="width: auto; height: auto; float: left;">
-                    <tr>
-                        <td>
-                            red:
-                        </td>
-                        <td>
-                            <div id="colour_red"></div>
-                        </td>
-                        <td>
-                            <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_red" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
-                        </td>
-                        <td id="colour_preview"></td>
-                        <!-- <td id="palette_row_0" style="width: auto; height: auto;"></td> -->
-                    </tr>
-                    <tr>
-                        <td>
-                            green:
-                        </td>
-                        <td>
-                            <div id="colour_green"></div>
-                        </td>
-                        <td>
-                            <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_green" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
-                        </td>
-                        <td id="rgb"></td>
-                        <!-- <td id="palette_row_1" style="width: auto; height: auto;"></td> -->
-                    </tr>
-                    <tr>
-                        <td>
-                            blue:
-                        </td>
-                        <td>
-                            <div id="colour_blue"></div>
-                        </td>
-                        <td>
-                            <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_blue" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
-                        </td>
-                        <td id="hex"></td>
-                        <!-- <td id="palette_row_2" style="width: auto; height: auto;"></td> -->
-                    </tr>
-                    <tr style="visibility: hidden; height: 0px;">
-                        <td></td>
-                        <td>255</td>
-                        <td></td>
-                        <td>rgb(255,255,255)</td>
-                    </tr>
-                </table>
-
-                <div style="float: left; height: 100%; width: 50%;">
-                    <div id="palette_row_0" style="width: 100%; height: 30%; float: left;"></div>
-                    <div id="palette_row_1" style="width: 100%; height: 30%; float: left;"></div>
-                    <div id="palette_row_2" style="width: 100%; height: 30%; float: left;"></div>
+                <!-- column for the checkboxes -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <input type="checkbox" id="show_grid" onclick="grid.toggle_grid()" checked="true">
+                    </div>
+                    <div class="fake_table_entry"></div>
+                    <div class="fake_table_entry"></div>
+                </div>
+                <!-- column for the checkbox descriptions -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        show grid
+                    </div>
+                    <div class="fake_table_entry"></div>
+                    <div class="fake_table_entry"></div>
                 </div>
 
-                <table>
-                    <tr>
-                        <td>
-                            rgb
-                        </td>
-                        <td>
-                            <div id="background_rgb_display"></div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            hex
-                        </td>
-                        <td>
-                            <div id="background_hex_display"></div>
-                        </td>
-                    </tr>
-                </table>
+                <div class="fake_table_column_seperators"></div>
 
-                <div>
-                    <button onclick="canvas.change_colour()">Use from colour mixer</button>
-                    <br>
-                    <input type="checkbox">
-                    transparent background (only noticable when image is exported)
+                <!-- column for grid thickness and pixels seperated descriptions  -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        grid thickness (in pixels):
+                    </div>
+                    <div class="fake_table_entry">
+                        pixels seperated (width):
+                    </div>
+                    <div class="fake_table_entry">
+                        pixels seperated (height):
+                    </div>
+                </div>
+                <!-- number inputs for ^ -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <input type="number" value="1" id="grid_thickness">
+                    </div>
+                    <div class="fake_table_entry">
+                        <input type="number" value="10" id="px_sep_w">
+                    </div>
+                    <div class="fake_table_entry">
+                        <input type="number" value="10" id="px_sep_h">
+                    </div>
+                </div>
+                <!-- apply buttons for ^ -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <button onclick="grid.apply_grid_thickness()">Apply</button>
+                    </div>
+                    <div class="fake_table_entry">
+                        <button onclick="grid.redo_pixels_seperated_w()">Apply</button>
+                    </div>
+                    <div class="fake_table_entry">
+                        <button onclick="grid.redo_pixels_seperated_h()">Apply</button>
+                    </div>
+                </div>
+
+                <div class="fake_table_column_seperators"></div>
+
+                <!-- description for canvas dimensions -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        width:
+                    </div>
+                    <div class="fake_table_entry">
+                        height:
+                    </div>
+                    <div class="fake_table_entry">
+                        zoom:
+                    </div>
+                </div>
+                <!-- input for canvas dimensions -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <input type="number" id="canvas_w_input" value="50">
+                    </div>
+                    <div class="fake_table_entry">
+                        <input type="number" id="canvas_h_input" value="50">
+                    </div>
+                    <div class="fake_table_entry">
+                        <input type="number" value="10" id="canvas_zoom">
+                    </div>
+                </div>
+                <!-- apply buttons for canvas dimensions -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <button onclick="canvas.change_width()">Apply</button>
+                    </div>
+                    <div class="fake_table_entry">
+                        <button onclick="canvas.change_height()">Apply</button>
+                    </div>
+                    <div class="fake_table_entry">
+                        <button onclick="canvas.change_zoom()">Apply</button>
+                    </div>
                 </div>
             </div>
 
-            <div id="tool_Layers" hidden></div>
-        </div>
-    </div>
+            <div id="tool_Colour" hidden style="height: 100%; max-width:100%;">
+                <!-- displaying the colour names -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        red:
+                    </div>
+                    <div class="fake_table_entry">
+                        green:
+                    </div>
+                    <div class="fake_table_entry">
+                        blue:
+                    </div>
+                </div>
+                <!-- displaying the values from the colour sliders -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry" id="colour_red"></div>
+                    <div class="fake_table_entry" id="colour_green"></div>
+                    <div class="fake_table_entry" id="colour_blue"></div>
+                </div>
+                <!-- sliders to change the values -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_red" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
+                    </div>
+                    <div class="fake_table_entry">
+                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_green" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
+                    </div>
+                    <div class="fake_table_entry">
+                        <input type="range" min="0" max="255" value="0" onchange="colour_mixer.update()" id="input_blue" oninput="colour_mixer.update()" onkeypress="colour_mixer.update()">
+                    </div>
+                </div>
+                <!-- additional information for the mixed colour -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry" id="colour_preview">
+                        
+                    </div>
+                    <div class="fake_table_entry" id="rgb">
 
-    <div id="tool_bar"></div>
+                    </div>
+                    <div class="fake_table_entry" id="hex">
 
-    <div id="tools">
-        <div id="colour mixer" hidden>
-            <h1>
-                colour mixer
-            </h1>
-            
-            
+                    </div>
+                </div>
 
-            <hr>
-        </div>
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        
+                    </div>
+                    <div class="fake_table_entry">
 
-        <div id="size" hidden>
-            <h1>
-                size
-            </h1>
+                    </div>
+                    <div class="fake_table_entry">
 
-            <table>
-                <tr>
-                    
-                </tr>
-                <tr>
-                    
-                </tr>
-            </table>
+                    </div>
+                </div>
 
-            <hr>
-        </div>
+                <!-- palette -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry" id="palette_row_0"></div>
+                    <div class="fake_table_entry" id="palette_row_1"></div>
+                    <div class="fake_table_entry" id="palette_row_2"></div>
+                </div>
 
-        <div id="zoom" hidden>
-            <h1>
-                zoom
-            </h1>
+                <!-- background colour -->
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        rgb
+                    </div>
+                    <div class="fake_table_entry">
+                        hex
+                    </div>
+                </div>
+                <div class="fake_table_column">
+                    <div class="fake_table_entry" id="background_rgb_display"></div>
+                    <div class="fake_table_entry" id="background_hex_display"></div>
+                </div>
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <button onclick="canvas.change_colour()">Use from colour mixer</button>
+                    </div>
+                </div>
+            </div>
 
-
-            <hr>
-        </div>
-
-        <div id="background colour" hidden>
-            <h1>
-                background colour
-            </h1>
-
-            
-
-            
-
-            <hr>
-        </div>
-
-        <div id="grid settings" hidden>
-            <h1>
-                grid settings
-            </h1>
-
-            
-            
-
-            <hr>
-        </div>
-
-        <div id="layers" hidden>
-            <button onclick="layers.create_layer()">Create new Layer</button>
-            <table id="layers_table"></table>
-        </div>
-    </div>
-
-    <div id="canvas">
-        <div id="layer_imgs"></div>
-
-        <div id="grid">
-            <div id="inner_grid">
-                <div id="horizontal_grid"></div>
-                <div id="vertical_grid"></div>
+            <div id="tool_Layers" hidden style="height: 100%;">
+                <button onclick="layers.create_layer()" style="float: left;">Create new Layer</button>
+                <div style="overflow-y: scroll; height: 100%">
+                    <div id="layers_table" style="height: 100%"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="outer_grid"></div>
+    <div style="height: 0.5%; background-color: rgb(198, 207, 223);"></div>
+
+    <div style="height: 75.5%; overflow-x: scroll; overflow-y: scroll; width: 100%;">
+        <div id="canvas" style="height: 100%; width: 100%;">
+            <div id="layer_imgs"></div>
+    
+            <div id="grid">
+                <div id="inner_grid">
+                    <div id="horizontal_grid"></div>
+                    <div id="vertical_grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background-color: #f5f6f7; height: 4%; float: bottom;"></div>
 
     <script type="text/javascript">
         /**
@@ -498,18 +440,6 @@
             }
         }
 
-        class Tool {
-            constructor() {
-                this.tool_bar = document.getElementById("tool_bar");
-                this.tools = ["colour mixer", "size", "zoom", "background colour", "grid settings", "layers"];
-            }
-            
-            toggle_tool(to) {
-                let e = document.getElementById(to);
-                e.hidden = !e.hidden;
-            }
-        }
-
         class ColourMixer{
             constructor() {
                 this.rgb_display = [
@@ -576,10 +506,12 @@
             }
         
             toggle_outer_grid() {
+                return;
                 this.outer_grid.hidden = !this.show_outer_grid.checked;
             }
             
             toggle_inner_grid() {
+                return;
                 this.inner_grid.hidden = !this.show_inner_grid.checked;
             }
         
@@ -599,7 +531,6 @@
         
             add_horizontal_lines() {
                 for (let i = this.pixels_seperated_h * canvas.zoom; i < (canvas.height * canvas.zoom); i = i + this.pixels_seperated_h * canvas.zoom) {
-                    console.log(this.grid_thickness);
                     let x = document.createElement("div");
                     x.style = "background-color: #000000; width: " + canvas.width * canvas.zoom + "px; height: " + this.grid_thickness + "px; position: absolute; top: " + i + "px;";
                     this.horizontal_grid.appendChild(x);
@@ -636,7 +567,7 @@
                 this.remove_vertical_lines();
                 this.add_horizontal_lines();
                 this.add_vertical_lines();
-                this.grid.style = "transform: scale(" + 1 / canvas.zoom + "); transform-origin: 0% 0% 0px;";
+                this.grid.style = "transform: scale(" + 1 / canvas.zoom + "); transform-origin: 0% 0% 0px; height: 100%; width: 100%;";
             }
         }
 
@@ -676,7 +607,7 @@
             create_layer() {
                 let l = new Layer(this.layer_count);
                 this.layer_objects.push(l);
-                let layer_gui = document.createElement("td");
+                let layer_gui = document.createElement("div");
 
                 // layer name
                 let layer_name = document.createElement("div");
@@ -684,6 +615,7 @@
                 name_input.value = "Layer: " + this.layer_count;
                 layer_name.appendChild(name_input);
                 layer_gui.appendChild(layer_name);
+                layer_gui.style = "float: left;"
 
                 // hide button
                 let toggle_visability = document.createElement("div");
@@ -800,7 +732,7 @@
             }
         }
 
-        class Palette{
+        class Palette {
             constructor() {
                 this.ROW_ELEMENTS = [];
                 this.AMOUNT_ROWS  = 3;
@@ -808,24 +740,101 @@
 
                 for (let i = 0; i < this.AMOUNT_ROWS; i++) {
                     this.ROW_ELEMENTS.push(document.getElementById("palette_row_" + i));
-                    console.log(this.ROW_ELEMENTS[i]);
                     for (let j = 0; j < this.AMOUNT_COLUMNS; j++) {
-                        let x = document.createElement("div");
-                        x.className = "palette_colours";
-                        this.ROW_ELEMENTS[i].appendChild(x);
+                        let a = document.createElement("div");
+                        a.className = "palette_colours";
+
+                        this.ROW_ELEMENTS[i].appendChild(a);
+                    }
+                }
+            }
+        }
+        
+        class Export {
+            constructor() {
+                this.EXPORT_ELEMENT = document.getElementById("tool_Export");
+                let btn = document.createElement("button");
+                btn.textContent = "EXPORT";
+                btn.onclick = this.do_export;
+                this.EXPORT_ELEMENT.appendChild(btn);
+            }
+
+            do_export() {
+                let c = document.createElement("canvas");
+                let ctx = c.getContext("2d");
+
+                c.width = canvas.width;
+                c.height = canvas.height;
+
+                if (document.getElementById("export_define_background").checked) {
+                    ctx.fillStyle = canvas.bg_colour;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                for (let i = 0; i < layers.layer_objects.length; i++) {
+                    let l = layers.layer_objects[i];
+
+                    for (let x = 0; x < l.pixels.length; x++) {
+                        for (let y = 0; y < l.pixels[x].length; y++) {
+                            let bg = l.pixels[y][x].style.backgroundColor;
+                            if (bg != "") {
+                                ctx.fillStyle = bg;
+                                ctx.fillRect(x, y, 1, 1);
+                            }
+                        }
+                    }
+                }
+
+                let file_type = document.getElementById("export_file_type").value;
+                console.log(file_type);
+                let imageData = c.toDataURL(file_type);
+                var tmpLink = document.createElement( 'a' );  
+                tmpLink.download = 'image'; 
+                tmpLink.href = imageData;
+                tmpLink.hidden = true;
+                
+                // temporarily add link to body and initiate the download  
+                document.body.appendChild(tmpLink);  
+                tmpLink.click();  
+                document.body.removeChild(tmpLink);
+            }
+        }
+
+        class Export2 {
+            constructor() {
+                this.EXPORT_ELEMENT = document.getElementById("tool_Export");
+                let btn = document.createElement("button");
+                btn.textContent = "EXPORT TO LOCALSTORADGE";
+                btn.onclick = this.do_export;
+                this.EXPORT_ELEMENT.appendChild(btn);
+            }
+
+            do_export() {
+                let total = "";
+                for (let i = 0; i < layers.layer_objects.length; i++) {
+                    let l = layers.layer_objects[i];
+
+                    for (let x = 0; x < l.pixels.length; x++) {
+                        for (let y = 0; y < l.pixels[x].length; y++) {
+                            let bg = l.pixels[y][x].style.backgroundColor;
+                            if (bg != "") {
+                                ctx.fillStyle = bg;
+                                ctx.fillRect(x, y, 1, 1);
+                            }
+                        }
                     }
                 }
             }
         }
 
         const canvas        = new Canvas();
-        const tools         = new Tool();
         const colour_mixer  = new ColourMixer();
         const grid          = new Grid();
         const layers        = new Layers();
-
         const tool_menu     = new ToolMenu();
         const palette       = new Palette();
+        const export_img    = new Export();
+        const export_b64    = new Export2();
 
         //
         // drawing
@@ -863,30 +872,6 @@
                 draw(canvas, e);
             });
 
-            // add tool bar buttons
-            for (let i = 0; i < tools.tools.length; i++) {
-                let t = tools.tools[i];
-                let x = document.createElement("button");
-
-                let f1 = () => {
-                    // console.log(t);
-                    tools.toggle_tool(t);
-                    x.className = "activated_tool";
-                    x.onclick = f2;
-                };
-                let f2 = () => {
-                    // console.log(t);
-                    tools.toggle_tool(t);
-                    x.className = "tool";
-                    x.onclick = f1;
-                };
-                x.onclick = f1;
-                x.textContent = t;
-                x.className = "tool";
-
-                tools.tool_bar.appendChild(x);
-            }
-
             // grid
             grid.toggle_grid();
             grid.toggle_inner_grid();
@@ -898,50 +883,6 @@
         }
         
         setup();
-        
-        /*
-        let canvas = document.getElementById("my_canvas");
-        var ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#FF0000";
-        ctx.fillRect(0, 0, 150, 75);
-/*
-        console.log(btoa("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="));
-        console.log(atob("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="));
-        // console.log(hex("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="))
-
-        let x= atob("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
-        for (let i = 0; i < x.length; i++) {
-            console.log(x.charAt(i));
-            console.log(x.charAt(i).charCodeAt(0).toString(16));
-            console.log(x.charAt(i).charCodeAt(0));
-
-        }
-        var canvas = document.createElement("canvas");
-
-
-canvas.width = 200;
-canvas.height = 200;
-/*
-canvas
-
-var url = canvas.toDataURL();
-
-var a = document.createElement('a');
-a.download = 'my.png';
-a.href = url;
-a.textContent = 'Download PNG';
-
-let ctx = canvas.getContext('2d');
-
-ctx.fillStyle = '#F0DB4F';
-    ctx.strokeStyle = 'red';
-
-    // draw a rectangle with fill and stroke
-    ctx.fillRect(50, 50, 150, 100);
-    ctx.strokeRect(50, 50, 150, 100);
-
-document.body.appendChild(a);
-*/
     </script>
 </body>
 </html>
