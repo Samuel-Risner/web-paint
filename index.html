@@ -137,32 +137,93 @@
         <div id="place_for_tool_menu" class="tool_menu">
             <!-- ids: e.g. "tool_Export", "tool_Import" -->
 
-            <div id="tool_Export" hidden>
-                <label for="export_file_type">
-                    Choose a file type for exporting:
-                </label>
-                <select name="export_file_type" id="export_file_type">
-                    <option value="image/png">PNG (default)</option>
-                    <option value="image/jpeg">JPEG</option>
-                    <!-- <option value="image/apng">APNG</option> -->
-                    <!-- <option value="image/avif">AVIF</option> -->
-                    <!-- <option value="image/gif">GIF</option> -->
-                    <!-- <option value="image/svg+xml">SVG</option> -->
-                    <option value="image/webp">WebP</option>
-                    <option value="image/bmp">BMP</option>
-                    <!-- <option value="image/x-icon">ICO</option> -->
-                    <!-- <option value="image/tiff">TIFF</option> -->
-                </select>
-                <br>
-                define background 
-                <input type="checkbox" id="export_define_background">
-                <br>
-                when exporting, all layers are combined
-                <br>
+            <div id="tool_Export" hidden style="height: 100%;">
+
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <label for="export_file_type">
+                            Choose a file type for exporting:
+                        </label>
+
+                        <select name="export_file_type" id="export_file_type">
+                            <option value="image/png">PNG (default)</option>
+                            <option value="image/jpeg">JPEG</option>
+                            <!-- <option value="image/apng">APNG</option> -->
+                            <!-- <option value="image/avif">AVIF</option> -->
+                            <!-- <option value="image/gif">GIF</option> -->
+                            <!-- <option value="image/svg+xml">SVG</option> -->
+                            <option value="image/webp">WebP</option>
+                            <option value="image/bmp">BMP</option>
+                            <!-- <option value="image/x-icon">ICO</option> -->
+                            <!-- <option value="image/tiff">TIFF</option> -->
+                        </select>
+                    </div>
+                    <div class="fake_table_entry">
+                        define background 
+                        <input type="checkbox" id="export_define_background">
+                    </div>
+                    <div class="fake_table_entry">
+                        when exporting as image, all layers are combined
+                    </div>
+                </div>
+
+                <div class="fake_table_column_seperators"></div>
+
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <button onclick="export_img.do_export()">
+                            Export as image
+                        </button>
+                    </div>
+                    <div class="fake_table_entry">
+                        <button onclick="export_txt.do_export_ls()">
+                            Save in local storage
+                        </button>
+                    </div>
+                    <div class="fake_table_entry">
+                        <button>
+                            Export as txt
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div id="tool_Import" hidden>
+            <div id="tool_Import" hidden style="height: 100%;">
 
+            </div>
+
+            <div id="tool_Project" hidden style="height: 100%;">
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        Project name:
+                    </div>
+                    <div class="fake_table_entry"></div>
+                    <div class="fake_table_entry"></div>
+                </div>
+
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <input type="text" value="you should enable javascript" id="project_name">
+                    </div>
+                    <div class="fake_table_entry"></div>
+                    <div class="fake_table_entry"></div>
+                </div>
+
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <button onclick="project.change_name()">Use</button>
+                    </div>
+                    <div class="fake_table_entry"></div>
+                    <div class="fake_table_entry"></div>
+                </div>
+
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <button onclick="project.create_new()">New</button>
+                    </div>
+                    <div class="fake_table_entry"></div>
+                    <div class="fake_table_entry"></div>
+                </div>
             </div>
 
             <div id="tool_Canvas" hidden style="height: 100%;">
@@ -351,10 +412,38 @@
                     <div id="layers_table" style="height: 100%"></div>
                 </div>
             </div>
+
+            <div id="tool_Local Storage" hidden style="height: 100%;">
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        Maximum characters per entry
+                    </div>
+                    <div class="fake_table_entry">
+                        <input type="number" min="1" value="526" id="ls_chars_per_entry">
+                    </div>
+                    <div class="fake_table_entry">
+                        <button>Refractor</button>
+                    </div>
+                </div>
+
+                <div class="fake_table_column_seperators"></div>
+
+                <div class="fake_table_column">
+                    <div class="fake_table_entry">
+                        <button>
+                            Delete all
+                        </button>
+                    </div>
+                    <div class="fake_table_entry"></div>
+                    <div class="fake_table_entry"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div style="height: 0.5%; background-color: rgb(198, 207, 223);"></div>
+
+    <div style="background-color: red; width: 100%; height: 10%;" hidden id="confirm_deletion"></div>
 
     <div style="height: 75.5%; overflow-x: scroll; overflow-y: scroll; width: 100%;">
         <div id="canvas" style="height: 100%; width: 100%;">
@@ -409,12 +498,14 @@
                 this.width = Number(this.width_input.value);
                 this.apply_changes();
                 grid.redo_grid();
+                layers.change_width();
             }
 
             change_height() {
-                this.height = Number(this.width_input.value);
+                this.height = Number(this.height_input.value);
                 this.apply_changes();
                 grid.redo_grid();
+                layers.change_height();
             }
 
             change_zoom() {
@@ -572,9 +663,11 @@
         }
 
         class Layer {
-            constructor(id) {
+            constructor(id, w, h) {
                 this.pixels = [];
                 this.id = id;
+                this.width = w;
+                this.height = h;
                 this.layer = document.createElement("div");
                 let l = document.getElementById("layer_imgs");
 
@@ -582,7 +675,7 @@
                     let sublist = [];
                     for (let j = 0; j < canvas.height; j++) {
                         let x = document.createElement("div");
-                        x.style = "height: 1px; width: 1px; position: absolute; top: " + i + "px; left: " + j+ "px;";
+                        x.style = "height: 1px; width: 1px; position: absolute; top: " + i + "px; left: " + j + "px;";
                         sublist.push(x);
                         this.layer.appendChild(x);
                     }
@@ -602,10 +695,11 @@
                 this.layer_table    = [];
                 this.layer_objects  = [];
                 this.current_layer  = 0;
+                this.ready = false;
             }
 
             create_layer() {
-                let l = new Layer(this.layer_count);
+                let l = new Layer(this.layer_count, canvas.width, canvas.height);
                 this.layer_objects.push(l);
                 let layer_gui = document.createElement("div");
 
@@ -613,6 +707,7 @@
                 let layer_name = document.createElement("div");
                 let name_input = document.createElement("input");
                 name_input.value = "Layer: " + this.layer_count;
+                name_input.id = "layer_gui_id_" + this.layer_count;
                 layer_name.appendChild(name_input);
                 layer_gui.appendChild(layer_name);
                 layer_gui.style = "float: left;"
@@ -676,6 +771,102 @@
                 this.current_layer = this.layer_count;
                 this.layer_count++;
             }
+
+            change_width() {
+                if (!this.ready) {
+                    return;
+                }
+
+                let new_w = canvas.width;
+                let current_w = this.layer_objects[this.current_layer].width;
+                // let current_h = this.layer_objects[this.current_layer].height;
+
+                if (current_w == new_w) {
+                    return;
+                } else if (current_w > new_w) {
+                    for (let l = 0; l < this.layer_objects.length; l++) {
+                        if (this.layer_objects[l] == null) {
+                            continue;
+                        }
+                        let pixel_list = [];
+                        for (let r = 0; r < this.layer_objects[l].pixels.length; r++) {
+                            pixel_list.push([]);
+                            for (let i = 0; i < new_w; i++) {
+                                pixel_list[r].push(this.layer_objects[l].pixels[r][i]);
+                            }
+                            for (let i = new_w; i < current_w; i++) {
+                                this.layer_objects[l].pixels[r][i].remove();
+                            }
+                        }
+                        this.layer_objects[l].pixels = pixel_list;
+                        this.layer_objects[l].width = new_w;
+                    }
+                } else /* if (new_w > current_w) */ {
+                    for (let l = 0; l < this.layer_objects.length; l++) {
+                        if (this.layer_objects[l] == null) {
+                            continue;
+                        }
+                        for (let r = 0; r < this.layer_objects[l].pixels.length; r++) {
+                            for (let i = current_w; i < new_w; i++) {
+                                let x = document.createElement("div");
+                                x.style = "height: 1px; width: 1px; position: absolute; top: " + r + "px; left: " + i + "px;";
+                                this.layer_objects[l].pixels[r].push(x);
+                                this.layer_objects[l].layer.appendChild(x);
+                            }
+                        }
+                        this.layer_objects[l].width = new_w;
+                    }
+                }
+            }
+
+            change_height() {
+                if (!this.ready) {
+                    return;
+                }
+
+                let new_h = canvas.height;
+                let current_h = this.layer_objects[this.current_layer].height;
+
+                if (current_h == new_h) {
+                    return;
+                } else if (current_h > new_h) {
+                    for (let l = 0; l < this.layer_objects.length; l++) {
+                        if (this.layer_objects[l] == null) {
+                            continue;
+                        }
+                        let row_list = [];
+                        for (let row = 0; row < new_h; row++) {
+                            row_list.push(this.layer_objects[l].pixels[row]);
+                        }
+                        for (let row = new_h; row < current_h; row++) {
+                            for (let c = 0; c < this.layer_objects[l].width; c++){
+                                this.layer_objects[l].pixels[row][c].remove();
+                            }
+                        }
+                        this.layer_objects[l].pixels = row_list;
+                        this.layer_objects[l].height = new_h;
+                    }
+                } else /* if (new_h > current_h) */ {
+                    for (let l = 0; l < this.layer_objects.length; l++) {
+                        if (this.layer_objects[l] == null) {
+                            continue;
+                        }
+                        let temp = this.layer_objects[l].pixels.length;
+                        for (let r = temp; r < new_h; r++) {
+                            let pixels = [];
+                            for (let i = 0; i < this.layer_objects[l].width; i++) {
+                                let x = document.createElement("div");
+                                x.style = "height: 1px; width: 1px; position: absolute; top: " + r + "px; left: " + i + "px;";
+                                pixels.push(x);
+                                this.layer_objects[l].layer.appendChild(x);
+                            }
+                            this.layer_objects[l].pixels.push(pixels);
+                            console.log(this.layer_objects[l].pixels)
+                        }
+                        this.layer_objects[l].height = new_h;
+                    }
+                }
+            }
         }
 
         class BackgroundColourHistory {
@@ -690,7 +881,7 @@
                 this.CATEGORY_SELECTOR_ELEMENT  = document.getElementById("tool_category_selector");
                 this.TOOL_MENU_ELEMENT          = document.getElementById("place_for_tool_menu");
 
-                this.TOOL_IDS               = ["Import", "Export", "Canvas", "Colour", "Layers"];
+                this.TOOL_IDS               = ["Import", "Export", "Canvas", "Colour", "Layers", "Local Storage", "Project"];
                 this.TOOL_BUTTONS_ELEMENTS  = [];
                 this.TOOL_ELEMENTS          = [];
 
@@ -751,14 +942,6 @@
         }
         
         class Export {
-            constructor() {
-                this.EXPORT_ELEMENT = document.getElementById("tool_Export");
-                let btn = document.createElement("button");
-                btn.textContent = "EXPORT";
-                btn.onclick = this.do_export;
-                this.EXPORT_ELEMENT.appendChild(btn);
-            }
-
             do_export() {
                 let c = document.createElement("canvas");
                 let ctx = c.getContext("2d");
@@ -771,12 +954,19 @@
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
 
+                let layer_objects = [];
                 for (let i = 0; i < layers.layer_objects.length; i++) {
-                    let l = layers.layer_objects[i];
+                    if (layers.layer_objects[i] != null) {
+                        layer_objects.push(layers.layer_objects[i]);
+                    }
+                }
+
+                for (let i = 0; i < layer_objects.length; i++) {
+                    let l = layer_objects[i];
 
                     for (let x = 0; x < l.pixels.length; x++) {
                         for (let y = 0; y < l.pixels[x].length; y++) {
-                            let bg = l.pixels[y][x].style.backgroundColor;
+                            let bg = l.pixels[x][y].style.backgroundColor;
                             if (bg != "") {
                                 ctx.fillStyle = bg;
                                 ctx.fillRect(x, y, 1, 1);
@@ -801,29 +991,230 @@
         }
 
         class Export2 {
-            constructor() {
-                this.EXPORT_ELEMENT = document.getElementById("tool_Export");
-                let btn = document.createElement("button");
-                btn.textContent = "EXPORT TO LOCALSTORADGE";
-                btn.onclick = this.do_export;
-                this.EXPORT_ELEMENT.appendChild(btn);
-            }
-
             do_export() {
-                let total = "";
+                let total = [];
+                let layer_objects = [];
                 for (let i = 0; i < layers.layer_objects.length; i++) {
-                    let l = layers.layer_objects[i];
+                    if (layers.layer_objects[i] != null) {
+                        layer_objects.push(layers.layer_objects[i]);
+                    }
+                }
+                for (let i = 0; i < layer_objects.length; i++) {
+                    let l = layer_objects[i];
+                    total.push([]);
 
-                    for (let x = 0; x < l.pixels.length; x++) {
-                        for (let y = 0; y < l.pixels[x].length; y++) {
+                    for (let y = 0; y < l.pixels.length; y++) {
+                        total[i].push([]);
+                        for (let x = 0; x < l.pixels[y].length; x++) {
                             let bg = l.pixels[y][x].style.backgroundColor;
-                            if (bg != "") {
-                                ctx.fillStyle = bg;
-                                ctx.fillRect(x, y, 1, 1);
+                            bg = bg.substring(4, bg.length - 1);
+                            let bg_temp = bg.split(" ");
+                            bg = "";
+                            for (let s = 0; s < bg_temp.length; s++) {
+                                bg = bg + bg_temp[s];
+                            }
+                            total[i][y].push(bg);
+                            // console.log(bg);
+                        }
+                    }
+                }
+
+                // compression
+                // goes through all the layers and y-colums and rows with  colours
+                // if a colour matches the previous one it is replaced with "."
+                // if no colour is given, it is skipped
+                for (let l = 0; l < total.length; l++) {
+                    for (let y = 0; y < total[l].length; y++) {
+                        let last_x = total[l][y][0];
+                        for (let x = 1; x < total[l][y].length; x++) {
+                            let temp = total[l][y][x];
+                            if (temp == "") {
+                                // nothing
+                            } else if (temp == last_x) {
+                                total[l][y][x] = ".";
+                            } else {
+                                last_x = temp;
                             }
                         }
                     }
                 }
+
+                // console.log(total);
+
+                // combining to string
+                // layers are seperated with //, colours with |
+                let ze_string = ""
+                for (let l = 0; l < total.length; l++) {
+                    for (let y = 0; y < total[l].length; y++) {
+                        for (let x = 0; x < total[l][y].length; x++) {
+                            ze_string = ze_string + total[l][y][x] + "|";
+                        }
+                    }
+                    // console.log(ze_string);
+                    // ze_string = ze_string.substring(0, ze_string.length - 1);
+                    // console.log(ze_string);
+                    ze_string = ze_string + "//";
+                }
+
+                return ze_string;
+            }
+
+            do_export_ls() {
+                let x = this.do_export();
+                ls_handler.save_project(ls_handler.get_current_project_name(), x)
+            }
+        }
+
+        class LSHandler {
+            constructor() {
+                this.storage = window.localStorage;
+                this.CHARS_PER_ENTRY_ELEMENT = document.getElementById("ls_chars_per_entry");
+                /*
+                    setItem( key , value ): stores key/value pair
+                    getItem( key ): returns the value in front of key
+                    key( index ): get the key on a given index
+                    length: returns the number of stored items(data)
+                    removeItem( key ): removes given key with its value
+                    clear(): deletes everything from the storage
+                */
+
+                /*
+                    Saving a project
+                    ================
+
+                        multiple entrys in local storage are cretated
+                        (NAME stands for the project name which is saved)
+
+                            NAME_img_string_count   # up to which number the "x" in "NAME_img_string_x" goes
+                            NAME_img_string_0
+                            NAME_img_string_1
+                            ...
+                            NAME_img_string_x
+                            NAME_canvas_width
+                            NAME_canvas_height
+                            NAME_canvas_bg_colour
+                            NAME_amount_layer_names
+                            
+                            NAME_layer_names_1
+                            ...
+                            NAME_layer_names_x
+                */
+                
+                this.use_ls = true;
+                if (this.use_ls) {
+                    if (!this.get_ls_was_ever_activated()) {
+                        this.activate_ls();
+                    }
+                }
+            }
+
+            get_ls_was_ever_activated() {
+                return this.storage.getItem("ever_activated") != null;
+            }
+
+            activate_ls() {
+                this.storage.setItem("ever_activated", "LS is now in use");
+                this.storage.setItem("current_project_name", "project_0");
+            }
+
+            get_current_project_name() {
+                if (!this.use_ls) {
+                    return "project_0";
+                }
+
+                let n = this.storage.getItem("current_project_name");
+                if (n == null) {
+                    return "project_0";
+                } else {
+                    return n;
+                }
+            }
+
+            set_current_project_name(new_name) {
+                if (!this.use_ls) {
+                    return;
+                }
+
+                this.storage.setItem("current_project_name", new_name);
+            }
+
+            rename_current_project(new_name) {
+                if (!this.use_ls) {
+                    return;
+                }
+
+                this.storage.setItem("current_project_name", new_name);
+            }
+
+            get_ls_keys_for_project(project_name) {
+                let k = this.storage.getItem(project_name + "_keys");
+            }
+
+
+
+
+
+            save_project(name, img_string) {
+                let max_chars = Number(this.CHARS_PER_ENTRY_ELEMENT.value);
+
+                // saving img as string
+                for(var i = 0; i < img_string.length / max_chars; i++) {
+                    this.storage.setItem(
+                        name + "_img_string_" + i,
+                        img_string.substring(i * max_chars, i * max_chars + max_chars)
+                    );
+                }
+                // saving how many local storage entrys were made in the above step
+                this.storage.setItem(name + "_img_string_count", i - 1);
+                // saving the width of the canvas
+                this.storage.setItem(name + "_canvas_width", canvas.width);
+                // saving the height of the canvas
+                this.storage.setItem(name + "_canvas_height", canvas.height);
+                // saving the background colour of the canvas 
+                this.storage.setItem(name + "_canvas_bg_colour", canvas.bg_colour);
+                // saving the layer names
+                let layer_names = [];
+                for (let i = 0; i < layers.layer_objects.length; i++) {
+                    if (layers.layer_objects[i] == null) {
+                        continue;
+                    }
+                    layer_names.push(document.getElementById("layer_gui_id_" + layers.layer_objects[i].id).value);
+                }
+                let to_save = "";
+                let count = 0;
+                for (let i = 0; i < layer_names.length; i++) {
+                    if (to_save.length + layer_names[i].length > max_chars) {
+                        this.storage.setItem(name + "_layer_names_" + count, to_save);
+                        count++;
+                        to_save = "";
+                    } else {
+                        to_save = to_save + layer_names[i];
+                    }
+                }
+                if (to_save != "") {
+                    this.storage.setItem(name + "_layer_names_" + count, to_save);
+                }
+                // saving how many local storage entrys were made in the above step
+                this.storage.setItem(name + "_amount_layer_names", count);
+            }
+
+            load_project() {
+
+            }
+        }
+
+        class Project {
+            constructor() {
+                this.PROJECT_NAME_ELEMENT = document.getElementById("project_name");
+                this.PROJECT_NAME_ELEMENT.value = ls_handler.get_current_project_name();
+            }
+
+            change_name() {
+                
+            }
+
+            create_new() {
+
             }
         }
 
@@ -834,7 +1225,9 @@
         const tool_menu     = new ToolMenu();
         const palette       = new Palette();
         const export_img    = new Export();
-        const export_b64    = new Export2();
+        const export_txt    = new Export2();
+        const ls_handler    = new LSHandler();
+        const project       = new Project();
 
         //
         // drawing
@@ -880,6 +1273,7 @@
 
             // layers
             layers.create_layer();
+            layers.ready = true;
         }
         
         setup();
