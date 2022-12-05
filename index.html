@@ -492,11 +492,12 @@
                 this.width_input     = document.getElementById("canvas_w_input");
                 this.height_input    = document.getElementById("canvas_h_input");
                 this.zoom_input      = document.getElementById("canvas_zoom");
-        
-                this.width      = 50;
-                this.height     = 50;
-                this.bg_colour  = "#000000";
-                this.zoom       = 10;
+                
+                // the following values are overwritten when the program initializes
+                this.width      = 16;
+                this.height     = 16;
+                this.bg_colour  = "#ffffff"; // white
+                this.zoom       = 32;
             }
 
             change_width() {
@@ -599,16 +600,6 @@
         
             toggle_grid() {
                 this.grid.hidden = !this.show_grid.checked;
-            }
-        
-            toggle_outer_grid() {
-                return;
-                this.outer_grid.hidden = !this.show_outer_grid.checked;
-            }
-            
-            toggle_inner_grid() {
-                return;
-                this.inner_grid.hidden = !this.show_inner_grid.checked;
             }
         
             remove_horizontal_lines() {
@@ -1272,8 +1263,6 @@
 
             // grid
             grid.toggle_grid();
-            grid.toggle_inner_grid();
-            grid.toggle_outer_grid();
             grid.redo_grid();
 
             // layers
